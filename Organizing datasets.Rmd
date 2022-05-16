@@ -1,0 +1,660 @@
+---
+title: "Organisation des jeux de données"
+author: "Simon Dufour"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    toc: true
+    toc_float: true
+  
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Organisation des jeux de données pour le prototype de rapport comparatif
+Ce script servira à organiser / explorer les jeux de données qui seront plus tard utilisés pour créer le prototype de rapport sectoriel.  Aussi, les figures et tables qui seraient présentées seront esquissées dans ce script.
+  
+D'abbord, nous pouvons importer et regrouper les jeux de données (n=3) contenant les ventes vétérinaires 2016-2018, 2019 et 2020. Le jeu de données 2016-2018 contient en fait les données de janvier 2016 à fin février 2019. Le jeu 2020 contenait janvier 2020 à fin décembre 2020. Le jeu 2019 est un jeu de données fictif, ce sont les données mars à décembre 2020, recodées de tel sorte que ce semble être les données de la même période en 2019 (i.e., date=date-365).  
+  
+Ces fichiers de ventes vétérinaires ont été générées à partir d'une extraction des données Vet expert. Le script C# `ExecutablesV3.3` a été utilisé avec la table de conversion `Conversion_Table_2022-05-12.xlsx` afin d'identifier les antibiotiques et de calculer les g, DDD et DCD. La qualité de la table de conversion à été vérifiée à l'aide d'une recherche des unités de ventes non-codées. Un certains nombre de lignes correspondant à des antibiotiques, mais pour lesquelles la quantité est impossible à déterminer (e.g., 2 doses) ne sont pas transformées en g, DDD et DCD. Leur nombre exact pourra être compilé plus loin.  
+  
+Pour le moment, toutes les lignes de ventes (antibiotiques ou non) on été conservées.
+
+```{r}
+v1 <- read.csv(file="data/Ventes vet2016-2018Out.csv", header=TRUE, sep=";", encoding="UTF-8")
+
+v2 <- read.csv(file="data/Ventes vet2019Out.csv", header=TRUE, sep=";", encoding="UTF-8")
+
+v3 <- read.csv(file="data/Ventes vet2020Out.csv", header=TRUE, sep=";", encoding="UTF-8")
+
+
+data <- rbind(v1, v2, v3)
+
+```
+  
+Ensuite, on devra assigner les numéros de fermes dans la base de données contenant les ventes d'antibiotiques en se basant sur les identifications de fermes. Pour ça, je dois importer la table qui contient les liens entres les NIM et numéros de projets. Ici, je garde cette partie du code "cachée" afin d'éviter les bris de confidentialité.  
+  
+```{r, echo=FALSE, results=FALSE, fig.cap="Nombre de lignes de ventes **totales** par ferme."}
+#options(scipen=999)
+#tapply(data$Nim.Client, data$Nom.Client, summary)
+
+id <- read.csv(file="data/Farm_ID.csv", header=TRUE, sep=";", encoding="UTF-8")
+
+#Main merge
+data2 <- merge(
+  x = data,
+  y = id,
+  by.x = "Nim.Client",
+  by.y = "NIM1",
+  all.x=TRUE
+)
+
+#Merge of the 6 farms with a second and/or third NIM
+data2$No.ferme <- ifelse(data2$Nim.Client=="100312255" | data2$Nim.Client=="101231595", 49,
+                         ifelse(data2$Nim.Client=="101266427", 59,
+                                ifelse(data2$Nim.Client=="100172620" | data2$Nim.Client=="100172631", 86, 
+                                       ifelse(data2$Nim.Client=="100479476", 8,
+                                              ifelse(data2$Nim.Client=="100450501", 14,
+                                                     ifelse(data2$Nim.Client=="100040211", 29, data2$No.ferme))))))
+
+#Il y a la ferme 88 (A Lestage) qui a le gros problème de répétition de lignes, il faut l'exclure 
+data3 <- subset(data2, No.ferme!=88)
+
+
+library(summarytools)
+print(dfSummary(data3$No.ferme), method='render')
+print(dfSummary(data3$Nim.Client), method='render')
+
+library(ggplot2)
+ggplot(data=data3, mapping=(aes(x=No.ferme))) +
+  geom_bar()+
+  theme_bw()
+
+#Maintenant, retirer les champs permettant d'identifier les producteurs
+myvars <- names(data3) %in% c("Nim.Client", "Nom.Client", "Clinique", "Vet", "Nim.Client2", "Nim.Client3", "NIM2", "NIM3")
+data4 <- data3[!myvars]
+#Reorder variables
+data5 <- data4[, c(98, 1:97)]
+
+```
+   
+Nous devons maintenant identifier / retirer les 15 à 20 fermes qui n'étaient plus suivies en 2019 ou 2020.
+```{r}
+#Extract year
+data5$Year <- factor(substr(data5$Date, 1, 4))
+summary(data5$Year)
+data5 <- data5[, c(1, 99, 2:98)]
+
+data5$No.ferme <- factor(data5$No.ferme)
+```
+
+```{r}
+#library(gmodels)
+#CrossTable(data5$No.ferme, data5$Year, prop.t=FALSE, prop.r=FALSE, prop.c=FALSE)
+
+```
+  
+Il y aurait 16 fermes qui n'étaient plus suivies en 2020: 1, 12, 14, 15, 21, 23, 24, 28, 31, 32, 48, 57, 69, 73, 83, 102. Je les retire:
+```{r}
+Ventes <- subset(data5, (No.ferme!=1 & No.ferme!=12 & No.ferme!=14 & No.ferme!=15 & No.ferme!=21 & No.ferme!=23 & No.ferme!=24 & No.ferme!=28 & No.ferme!=31 & No.ferme!=32 & No.ferme!=48 & No.ferme!=57 & No.ferme!=69 & No.ferme!=73 & No.ferme!=83 & No.ferme!=102))
+```
+
+Finalement, on peut vérifier le nombre de ligne de vente totales et de ventes d'antibiotiques en particulier.   
+```{r}
+num_vente <- dim(Ventes)
+
+AMU <- subset(Ventes, TYPE_PRODUIT==1)
+num_amu <- dim(AMU)
+
+prop <- round(num_amu[1]/num_vente[1]*100, digits=1)
+
+uncodable <- subset(AMU, ROUTE==0) 
+unc <- dim(uncodable)
+prop2 <- round(unc/num_amu*100, digits=1)
+
+```
+Il y avait donc `r num_vente[1]` lignes de ventes, dont `r num_amu[1]` (`r prop`%) était des antibiotiques. Parmis ceux-ci, il y avait `r unc[1]` (`r prop2[1]`%) produits antibiotiques pour lesquels il était impossible de déterminer la quantité exacte. Ce sont souvent des  unités de mesures pour lesquelles il est impossible de déterminer un nombre exact de ml, g, bolus, ou tube (ex: 1 "dose").  
+  
+Voici le nombre de vente d'antibiotiques par ferme:  
+  
+```{r, fig.cap="Nombre de lignes de ventes **d'antibiotiques** par ferme."}
+library(ggplot2)
+ggplot(data=AMU, mapping=(aes(x=No.ferme))) +
+  geom_bar()+
+  coord_flip()+
+  theme_bw()
+```
+  
+Maintenant que cette compilation est faite, nous devrons **retirer les lignes d'antibiotiques pour lesquels on ne peut calculer une quantité exacte**.  
+  
+```{r}
+AMU <- subset(AMU, ROUTE!=0)
+dim(AMU)
+```
+  
+À partir d'ici, il faudra additionner, par année et pour chaque ferme la quantité d'antibiotique utilisé. **Quelques décisions à discuter:**  
+  
+- On pourrait laisser aux lecteurs le choix de l'unité utilisée pour lire le rapport. Personnellement, étant donné la manière dont les antibiotiques sont utilisés en production laitière et la manière dont les indices sont calculés:  
+  1. Mon premier choix serait de ne présenter que DCDbovCA (traitements standardisés).  
+  2. Alternativement, ont pourrait présenter DCDbovCA par défaut et permettre à l'utilisateur de changer à DDDbovCA (dose journalière). Le désavantage des DDDbovCA réside dans le calcul des traitements au tarissement (qui est plutôt empirique pour cette utilisation) et, à un moindre degré, pour les autres antibiotiques à longue action.  
+  3. Je crois qu'on ne devrait simplement pas présenter en g. C'est une unité qui ne fait pas de sens concernant l'AMU/l'AMR sauf dans les cas où il est impossible d'obtenir des données en DCD ou DDD (ce qui n'est pas le cas ici).  
+    
+- On pourrait d'office présenter une figure sur l'utilisation totale et 3 figures présentant l'utilisation par catégories (I, II et III seulement). Pour les catégorie IV, il s'agit principalement du Monensin, du Lasalocide sodique et de la Novobiocine. Pour l'instant, le Monensin se retrouve surtout dans les aliments (prescriptions alimentaires) et un peu dans les ventes (bolus). La compilation du Monensin dans les données de ventes est donc parcellaire. Le lasalocide sodique sera presque entièrement dans les données de prescriptions alimentaires. Je crois donc qu'il faut éviter de compiler les catégories IV et, surtout, de les compiler dans le total (puisque ce sera incomplet). Étant donné leur faible importance, c'est beaucoup plus simple, à ce stade. de les exclure des calculs.  
+  
+- Pour ce qui est des voies d'administration, ont pourrait permettre aux lecteurs "d'exploser" ou non les 4 figures précédentes par voie d'administration?
+  
+-Techniquement, si ont s'entend sur les indices à utiliser et les figures à présenter, je crois que ce serait plus simple de compiler les indices par ferme, par année ici, puis de générer le script pour l'interface qui sera alors plus rapide (i.e., plus réactif). Sinon, avec une base de données complète, l'interface pourrait être lente.
+
+## Calculs des indices pré-interface
+Je vais donc déjà calculer les différents indices d'intérêt dans les lignes suivantes.
+```{r}
+#First summarize by farm, year and administration route. This will be the table with the maximum possibilities in term of exploding the data.
+Agg.amu <- setNames(
+  aggregate(
+    cbind(AMU$TYLOSIN_DCD, 
+          AMU$CHLORTETRACYCLINE_DCD, 
+          AMU$BENZYLPENICILLIN_P_DCD, 
+          AMU$DIHYDROSTREPTOMYCIN_DCD, 
+          AMU$POLYMYXINB_SULF_DCD, 
+          AMU$CEFAPIRIN_DCD, 
+          AMU$PIRLIMYCIN_DCD, 
+          AMU$CEFTIOFUR_DCD, 
+          AMU$CLOXACILLIN_DCD, 
+          AMU$TRIM_SULFADOXINE_DCD, 
+          AMU$OXYTETRACYCLINE_DCD, 
+          AMU$AMPICILLIN_DCD, 
+          AMU$TILMICOSIN_DCD, 
+          AMU$BENZYLPENICILLIN_B_DCD, 
+          AMU$ENROFLOXACIN_DCD, 
+          AMU$DANOFLOXACIN_DCD, 
+          AMU$TULATHROMYCIN_DCD, 
+          AMU$GAMITROMYCIN_DCD, 
+          AMU$TILDIPIROSIN_DCD, 
+          AMU$MARBOFLOXACIN_DCD, 
+          AMU$SULFANILAMIDE_DCD, 
+          AMU$SULFATHIAZOLE_DCD, 
+          AMU$STREPTOMYCIN_SULF_DCD, 
+          AMU$SULFAMETHAZINE_DCD, 
+          AMU$TETRACYCLINE_DCD, 
+          AMU$NEOMYCIN_SULF_DCD, 
+          AMU$SULFAMERAZINE_DCD, 
+          AMU$SULFAGUANIDINE_DCD, 
+          AMU$SUCCINYLSULFATHIAZOLE_DCD,
+         
+          AMU$TYLOSIN_DDD, 
+          AMU$CHLORTETRACYCLINE_DDD, 
+          AMU$BENZYLPENICILLIN_P_DDD, 
+          AMU$DIHYDROSTREPTOMYCIN_DDD, 
+          AMU$POLYMYXINB_SULF_DDD, 
+          AMU$CEFAPIRIN_DDD, 
+          AMU$PIRLIMYCIN_DDD, 
+          AMU$CEFTIOFUR_DDD, 
+          AMU$CLOXACILLIN_DDD, 
+          AMU$TRIM_SULFADOXINE_DDD, 
+          AMU$OXYTETRACYCLINE_DDD, 
+          AMU$AMPICILLIN_DDD, 
+          AMU$TILMICOSIN_DDD, 
+          AMU$BENZYLPENICILLIN_B_DDD, 
+          AMU$ENROFLOXACIN_DDD, 
+          AMU$DANOFLOXACIN_DDD, 
+          AMU$TULATHROMYCIN_DDD, 
+          AMU$GAMITROMYCIN_DDD, 
+          AMU$TILDIPIROSIN_DDD, 
+          AMU$MARBOFLOXACIN_DDD, 
+          AMU$SULFANILAMIDE_DDD, 
+          AMU$SULFATHIAZOLE_DDD, 
+          AMU$STREPTOMYCIN_SULF_DDD, 
+          AMU$SULFAMETHAZINE_DDD, 
+          AMU$TETRACYCLINE_DDD, 
+          AMU$NEOMYCIN_SULF_DDD, 
+          AMU$SULFAMERAZINE_DDD, 
+          AMU$SULFAGUANIDINE_DDD, 
+          AMU$SUCCINYLSULFATHIAZOLE_DDD
+          ), 
+    by=list(AMU$Year, AMU$No.ferme, AMU$ROUTE), FUN=sum),
+  c( "Year",
+     "No.Ferme",
+     "Route",
+     "TYLOSIN_DCD",
+     "CHLORTETRACYCLINE_DCD",
+     "BENZYLPENICILLIN_P_DCD", 
+     "DIHYDROSTREPTOMYCIN_DCD", 
+     "POLYMYXINB_SULF_DCD", 
+     "CEFAPIRIN_DCD", 
+     "PIRLIMYCIN_DCD", 
+     "CEFTIOFUR_DCD", 
+     "CLOXACILLIN_DCD", 
+     "TRIM_SULFADOXINE_DCD", 
+     "OXYTETRACYCLINE_DCD", 
+     "AMPICILLIN_DCD", 
+     "TILMICOSIN_DCD", 
+     "BENZYLPENICILLIN_B_DCD", 
+     "ENROFLOXACIN_DCD", 
+     "DANOFLOXACIN_DCD", 
+     "TULATHROMYCIN_DCD", 
+     "GAMITROMYCIN_DCD", 
+     "TILDIPIROSIN_DCD", 
+     "MARBOFLOXACIN_DCD", 
+     "SULFANILAMIDE_DCD", 
+     "SULFATHIAZOLE_DCD", 
+     "STREPTOMYCIN_SULF_DCD", 
+     "SULFAMETHAZINE_DCD", 
+     "TETRACYCLINE_DCD", 
+     "NEOMYCIN_SULF_DCD", 
+     "SULFAMERAZINE_DCD", 
+     "SULFAGUANIDINE_DCD", 
+     "SUCCINYLSULFATHIAZOLE_DCD",
+     
+     "TYLOSIN_DDD",
+     "CHLORTETRACYCLINE_DDD",
+     "BENZYLPENICILLIN_P_DDD", 
+     "DIHYDROSTREPTOMYCIN_DDD", 
+     "POLYMYXINB_SULF_DDD", 
+     "CEFAPIRIN_DDD", 
+     "PIRLIMYCIN_DDD", 
+     "CEFTIOFUR_DDD", 
+     "CLOXACILLIN_DDD", 
+     "TRIM_SULFADOXINE_DDD", 
+     "OXYTETRACYCLINE_DDD", 
+     "AMPICILLIN_DDD", 
+     "TILMICOSIN_DDD", 
+     "BENZYLPENICILLIN_B_DDD", 
+     "ENROFLOXACIN_DDD", 
+     "DANOFLOXACIN_DDD", 
+     "TULATHROMYCIN_DDD", 
+     "GAMITROMYCIN_DDD", 
+     "TILDIPIROSIN_DDD", 
+     "MARBOFLOXACIN_DDD", 
+     "SULFANILAMIDE_DDD", 
+     "SULFATHIAZOLE_DDD", 
+     "STREPTOMYCIN_SULF_DDD", 
+     "SULFAMETHAZINE_DDD", 
+     "TETRACYCLINE_DDD", 
+     "NEOMYCIN_SULF_DDD", 
+     "SULFAMERAZINE_DDD", 
+     "SULFAGUANIDINE_DDD", 
+     "SUCCINYLSULFATHIAZOLE_DDD"))
+
+```
+  
+En compilant, **il y aura parfois des "retour de produits" un certaine année, sans achat dans cette catégorie, ce qui occasionnera des DDD et DCD négatives pour certaines ferme-année (1 ou 2 ferme-années dans le jeu de données de 85 troupeau et 4 années). À ce stade, je crois qu'on devrait les écarter.** À noter, cela arrive ici parce que nous sommes en produits compilés par molécule, par ferme, par année et par voie d'administration; il y a donc parfois très peu de produits dans une catégorie donnée. Plus loin, lorsqu'on compilera par ferme-année, ce sera moins problématique.
+  
+```{r}
+Agg.amu.pos <- Agg.amu
+Agg.amu.pos[Agg.amu.pos < 0] <- 0
+
+```
+
+
+Ensuite nous pouvons importer, puis lier la table contenant les inventaires 2017-2018 d'animaux. Pour la démonstration, nous assumerons que les inventaires sont demeurés constant jusqu'en 2020. Dans le futur, la jointure pourrait se faire par *No.ferme* **ET** *années*, si des inventaires par année deviennent disponibles.  
+  
+```{r}
+inv <- read.csv(file="data/Fermes_Projet.csv", header=TRUE, sep=";", encoding="UTF-8")
+
+myvars <- c("Num_ferme", "Nb_veau", "Nb_taure", "Nb_vch1", "Nb_vch2", "Nb_tarie", "Nb_taureau", "Quota", "Nb_VL", "nb_vch")
+inv <- inv[myvars]
+
+#Main merge
+max.agg.amu <- merge(
+  x = Agg.amu.pos,
+  y = inv,
+  by.x = "No.Ferme",
+  by.y = "Num_ferme",
+  all.x=TRUE
+)
+
+```
+  
+
+## Calcul des indices pour la table ferme-année-route et ferme-année 
+Deux tables seront nécessaires pour les calculs. Une avec les données par ferme-année (qui servira pour la plupart des figures de base), une autre avec les données par ferme-année-route d'administration (pour l'explosion des données par voie d'administration). Alternativement, la première table pourrait être compilée à l'interieur du script `Shiny` produisant l'interface.
+
+### Utilisation par ferme, année et voie d'administration
+  
+```{r}
+#Totale
+max.agg.amu$total_DCD <- apply(max.agg.amu[, 4:32],1, sum)
+max.agg.amu$total_DDD <- apply(max.agg.amu[, 33:61],1, sum)
+
+#Cat1
+max.agg.amu$cat1_DCD <- max.agg.amu$CEFTIOFUR_DCD+max.agg.amu$POLYMYXINB_SULF_DCD+max.agg.amu$DANOFLOXACIN_DCD+max.agg.amu$ENROFLOXACIN_DCD+max.agg.amu$MARBOFLOXACIN_DCD
+max.agg.amu$cat1_DDD <- max.agg.amu$CEFTIOFUR_DDD+max.agg.amu$POLYMYXINB_SULF_DDD+max.agg.amu$DANOFLOXACIN_DDD+max.agg.amu$ENROFLOXACIN_DDD+max.agg.amu$MARBOFLOXACIN_DDD 
+  
+#Cat2
+max.agg.amu$cat2_DCD <- max.agg.amu$GAMITROMYCIN_DCD+max.agg.amu$TILDIPIROSIN_DCD+max.agg.amu$TILMICOSIN_DCD+max.agg.amu$TULATHROMYCIN_DCD+max.agg.amu$TYLOSIN_DCD+max.agg.amu$DIHYDROSTREPTOMYCIN_DCD+max.agg.amu$NEOMYCIN_SULF_DCD+max.agg.amu$STREPTOMYCIN_SULF_DCD+max.agg.amu$AMPICILLIN_DCD+max.agg.amu$CEFAPIRIN_DCD+max.agg.amu$PIRLIMYCIN_DCD+max.agg.amu$CLOXACILLIN_DCD+max.agg.amu$BENZYLPENICILLIN_P_DCD+max.agg.amu$BENZYLPENICILLIN_B_DCD+max.agg.amu$TRIM_SULFADOXINE_DCD
+
+max.agg.amu$cat2_DDD <- max.agg.amu$GAMITROMYCIN_DDD+max.agg.amu$TILDIPIROSIN_DDD+max.agg.amu$TILMICOSIN_DDD+max.agg.amu$TULATHROMYCIN_DDD+max.agg.amu$TYLOSIN_DDD+max.agg.amu$DIHYDROSTREPTOMYCIN_DDD+max.agg.amu$NEOMYCIN_SULF_DDD+max.agg.amu$STREPTOMYCIN_SULF_DDD+max.agg.amu$AMPICILLIN_DDD+max.agg.amu$CEFAPIRIN_DDD+max.agg.amu$PIRLIMYCIN_DDD+max.agg.amu$CLOXACILLIN_DDD+max.agg.amu$BENZYLPENICILLIN_P_DDD+max.agg.amu$BENZYLPENICILLIN_B_DDD+max.agg.amu$TRIM_SULFADOXINE_DDD 
+ 
+#Cat3
+max.agg.amu$cat3_DCD <- max.agg.amu$CHLORTETRACYCLINE_DCD+max.agg.amu$OXYTETRACYCLINE_DCD+max.agg.amu$TETRACYCLINE_DCD+max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD+max.agg.amu$SULFAGUANIDINE_DCD+max.agg.amu$SULFAMERAZINE_DCD+max.agg.amu$SULFAMETHAZINE_DCD+max.agg.amu$SULFANILAMIDE_DCD+max.agg.amu$SULFATHIAZOLE_DCD
+
+max.agg.amu$cat3_DDD <- max.agg.amu$CHLORTETRACYCLINE_DDD+max.agg.amu$OXYTETRACYCLINE_DDD+max.agg.amu$TETRACYCLINE_DDD+max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD+max.agg.amu$SULFAGUANIDINE_DDD+max.agg.amu$SULFAMERAZINE_DDD+max.agg.amu$SULFAMETHAZINE_DDD+max.agg.amu$SULFANILAMIDE_DDD+max.agg.amu$SULFATHIAZOLE_DDD 
+
+
+
+```
+
+### Standardization par 100 vaches-année
+Présentement, les indices sont en nombre absolus de DDDbovCA et DCDbovCA. Ces valeurs doivent être standardisées par unité de production pour pouvoir avoir des **taux d'utilisation**. Dans le futur (avec les ajouts de champs dans Vet Expert), ce pourra seulement être le nombre d'animaux de <24 mois, le nombre d'animaux de >24 mois, ou la somme des deux (i.e. nombre d'animaux total). **Pour le moment, je prendrais le nombre d'animaux total comme dénominateur.**
+  
+```{r}
+#calculer le nombre total d'animaux
+max.agg.amu$denom <- max.agg.amu$Nb_veau+max.agg.amu$Nb_taure+max.agg.amu$Nb_vch1+max.agg.amu$Nb_vch2+max.agg.amu$Nb_tarie+max.agg.amu$Nb_taureau
+
+#Diviser les valeurs absolues par le nombre d'animaux
+#DCD
+max.agg.amu$TYLOSIN_DCD <- max.agg.amu$TYLOSIN_DCD/max.agg.amu$denom*100
+max.agg.amu$CHLORTETRACYCLINE_DCD <- max.agg.amu$CHLORTETRACYCLINE_DCD/max.agg.amu$denom*100
+max.agg.amu$BENZYLPENICILLIN_P_DCD <- max.agg.amu$BENZYLPENICILLIN_P_DCD/max.agg.amu$denom*100
+max.agg.amu$DIHYDROSTREPTOMYCIN_DCD <- max.agg.amu$DIHYDROSTREPTOMYCIN_DCD/max.agg.amu$denom*100 
+max.agg.amu$POLYMYXINB_SULF_DCD <- max.agg.amu$POLYMYXINB_SULF_DCD/max.agg.amu$denom*100
+max.agg.amu$CEFAPIRIN_DCD <- max.agg.amu$CEFAPIRIN_DCD/max.agg.amu$denom*100
+max.agg.amu$PIRLIMYCIN_DCD <- max.agg.amu$PIRLIMYCIN_DCD/max.agg.amu$denom*100
+max.agg.amu$CEFTIOFUR_DCD <- max.agg.amu$CEFTIOFUR_DCD/max.agg.amu$denom*100
+max.agg.amu$CLOXACILLIN_DCD <- max.agg.amu$CLOXACILLIN_DCD/max.agg.amu$denom*100
+max.agg.amu$TRIM_SULFADOXINE_DCD <- max.agg.amu$TRIM_SULFADOXINE_DCD/max.agg.amu$denom*100
+max.agg.amu$OXYTETRACYCLINE_DCD <- max.agg.amu$OXYTETRACYCLINE_DCD/max.agg.amu$denom*100
+max.agg.amu$AMPICILLIN_DCD <- max.agg.amu$AMPICILLIN_DCD/max.agg.amu$denom*100
+max.agg.amu$TILMICOSIN_DCD <- max.agg.amu$TILMICOSIN_DCD/max.agg.amu$denom*100
+max.agg.amu$BENZYLPENICILLIN_B_DCD <- max.agg.amu$BENZYLPENICILLIN_B_DCD/max.agg.amu$denom*100
+max.agg.amu$ENROFLOXACIN_DCD <- max.agg.amu$ENROFLOXACIN_DCD/max.agg.amu$denom*100
+max.agg.amu$DANOFLOXACIN_DCD <- max.agg.amu$DANOFLOXACIN_DCD/max.agg.amu$denom*100
+max.agg.amu$TULATHROMYCIN_DCD <- max.agg.amu$TULATHROMYCIN_DCD/max.agg.amu$denom*100
+max.agg.amu$GAMITROMYCIN_DCD <- max.agg.amu$GAMITROMYCIN_DCD/max.agg.amu$denom*100
+max.agg.amu$TILDIPIROSIN_DCD <- max.agg.amu$TILDIPIROSIN_DCD/max.agg.amu$denom*100
+max.agg.amu$MARBOFLOXACIN_DCD <- max.agg.amu$MARBOFLOXACIN_DCD/max.agg.amu$denom*100
+max.agg.amu$SULFANILAMIDE_DCD <- max.agg.amu$SULFANILAMIDE_DCD/max.agg.amu$denom*100
+max.agg.amu$SULFATHIAZOLE_DCD <- max.agg.amu$SULFATHIAZOLE_DCD/max.agg.amu$denom*100
+max.agg.amu$STREPTOMYCIN_SULF_DCD <- max.agg.amu$STREPTOMYCIN_SULF_DCD/max.agg.amu$denom*100
+max.agg.amu$SULFAMETHAZINE_DCD <- max.agg.amu$SULFAMETHAZINE_DCD/max.agg.amu$denom*100
+max.agg.amu$TETRACYCLINE_DCD <- max.agg.amu$TETRACYCLINE_DCD/max.agg.amu$denom*100
+max.agg.amu$NEOMYCIN_SULF_DCD <- max.agg.amu$NEOMYCIN_SULF_DCD/max.agg.amu$denom*100
+max.agg.amu$SULFAMERAZINE_DCD <- max.agg.amu$SULFAMERAZINE_DCD/max.agg.amu$denom*100
+max.agg.amu$SULFAGUANIDINE_DCD <- max.agg.amu$SULFAGUANIDINE_DCD/max.agg.amu$denom*100
+max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD <- max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD/max.agg.amu$denom*100
+max.agg.amu$total_DCD <- max.agg.amu$total_DCD/max.agg.amu$denom*100
+max.agg.amu$cat1_DCD <- max.agg.amu$cat1_DCD/max.agg.amu$denom*100
+max.agg.amu$cat2_DCD <- max.agg.amu$cat2_DCD/max.agg.amu$denom*100
+max.agg.amu$cat3_DCD <- max.agg.amu$cat3_DCD/max.agg.amu$denom*100
+
+#DDD
+max.agg.amu$TYLOSIN_DDD <- max.agg.amu$TYLOSIN_DDD/max.agg.amu$denom*100
+max.agg.amu$CHLORTETRACYCLINE_DDD <- max.agg.amu$CHLORTETRACYCLINE_DDD/max.agg.amu$denom*100
+max.agg.amu$BENZYLPENICILLIN_P_DDD <- max.agg.amu$BENZYLPENICILLIN_P_DDD/max.agg.amu$denom*100
+max.agg.amu$DIHYDROSTREPTOMYCIN_DDD <- max.agg.amu$DIHYDROSTREPTOMYCIN_DDD/max.agg.amu$denom*100 
+max.agg.amu$POLYMYXINB_SULF_DDD <- max.agg.amu$POLYMYXINB_SULF_DDD/max.agg.amu$denom*100
+max.agg.amu$CEFAPIRIN_DDD <- max.agg.amu$CEFAPIRIN_DDD/max.agg.amu$denom*100
+max.agg.amu$PIRLIMYCIN_DDD <- max.agg.amu$PIRLIMYCIN_DDD/max.agg.amu$denom*100
+max.agg.amu$CEFTIOFUR_DDD <- max.agg.amu$CEFTIOFUR_DDD/max.agg.amu$denom*100
+max.agg.amu$CLOXACILLIN_DDD <- max.agg.amu$CLOXACILLIN_DDD/max.agg.amu$denom*100
+max.agg.amu$TRIM_SULFADOXINE_DDD <- max.agg.amu$TRIM_SULFADOXINE_DDD/max.agg.amu$denom*100
+max.agg.amu$OXYTETRACYCLINE_DDD <- max.agg.amu$OXYTETRACYCLINE_DDD/max.agg.amu$denom*100
+max.agg.amu$AMPICILLIN_DDD <- max.agg.amu$AMPICILLIN_DDD/max.agg.amu$denom*100
+max.agg.amu$TILMICOSIN_DDD <- max.agg.amu$TILMICOSIN_DDD/max.agg.amu$denom*100
+max.agg.amu$BENZYLPENICILLIN_B_DDD <- max.agg.amu$BENZYLPENICILLIN_B_DDD/max.agg.amu$denom*100
+max.agg.amu$ENROFLOXACIN_DDD <- max.agg.amu$ENROFLOXACIN_DDD/max.agg.amu$denom*100
+max.agg.amu$DANOFLOXACIN_DDD <- max.agg.amu$DANOFLOXACIN_DDD/max.agg.amu$denom*100
+max.agg.amu$TULATHROMYCIN_DDD <- max.agg.amu$TULATHROMYCIN_DDD/max.agg.amu$denom*100
+max.agg.amu$GAMITROMYCIN_DDD <- max.agg.amu$GAMITROMYCIN_DDD/max.agg.amu$denom*100
+max.agg.amu$TILDIPIROSIN_DDD <- max.agg.amu$TILDIPIROSIN_DDD/max.agg.amu$denom*100
+max.agg.amu$MARBOFLOXACIN_DDD <- max.agg.amu$MARBOFLOXACIN_DDD/max.agg.amu$denom*100
+max.agg.amu$SULFANILAMIDE_DDD <- max.agg.amu$SULFANILAMIDE_DDD/max.agg.amu$denom*100
+max.agg.amu$SULFATHIAZOLE_DDD <- max.agg.amu$SULFATHIAZOLE_DDD/max.agg.amu$denom*100
+max.agg.amu$STREPTOMYCIN_SULF_DDD <- max.agg.amu$STREPTOMYCIN_SULF_DDD/max.agg.amu$denom*100
+max.agg.amu$SULFAMETHAZINE_DDD <- max.agg.amu$SULFAMETHAZINE_DDD/max.agg.amu$denom*100
+max.agg.amu$TETRACYCLINE_DDD <- max.agg.amu$TETRACYCLINE_DDD/max.agg.amu$denom*100
+max.agg.amu$NEOMYCIN_SULF_DDD <- max.agg.amu$NEOMYCIN_SULF_DDD/max.agg.amu$denom*100
+max.agg.amu$SULFAMERAZINE_DDD <- max.agg.amu$SULFAMERAZINE_DDD/max.agg.amu$denom*100
+max.agg.amu$SULFAGUANIDINE_DDD <- max.agg.amu$SULFAGUANIDINE_DDD/max.agg.amu$denom*100
+max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD <- max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD/max.agg.amu$denom*100
+max.agg.amu$total_DDD <- max.agg.amu$total_DDD/max.agg.amu$denom*100
+max.agg.amu$cat1_DDD <- max.agg.amu$cat1_DDD/max.agg.amu$denom*100
+max.agg.amu$cat2_DDD <- max.agg.amu$cat2_DDD/max.agg.amu$denom*100
+max.agg.amu$cat3_DDD <- max.agg.amu$cat3_DDD/max.agg.amu$denom*100
+
+
+write.csv(max.agg.amu,"data/max.csv", row.names = FALSE)
+```
+
+
+### Utilisation par ferme-année
+
+```{r}
+#Then summarize by farm and year aonly. This will be the table with the minimum possibilities in term of exploding the data.
+min.agg.amu <- setNames(
+  aggregate(
+    cbind(AMU$TYLOSIN_DCD, 
+          AMU$CHLORTETRACYCLINE_DCD, 
+          AMU$BENZYLPENICILLIN_P_DCD, 
+          AMU$DIHYDROSTREPTOMYCIN_DCD, 
+          AMU$POLYMYXINB_SULF_DCD, 
+          AMU$CEFAPIRIN_DCD, 
+          AMU$PIRLIMYCIN_DCD, 
+          AMU$CEFTIOFUR_DCD, 
+          AMU$CLOXACILLIN_DCD, 
+          AMU$TRIM_SULFADOXINE_DCD, 
+          AMU$OXYTETRACYCLINE_DCD, 
+          AMU$AMPICILLIN_DCD, 
+          AMU$TILMICOSIN_DCD, 
+          AMU$BENZYLPENICILLIN_B_DCD, 
+          AMU$ENROFLOXACIN_DCD, 
+          AMU$DANOFLOXACIN_DCD, 
+          AMU$TULATHROMYCIN_DCD, 
+          AMU$GAMITROMYCIN_DCD, 
+          AMU$TILDIPIROSIN_DCD, 
+          AMU$MARBOFLOXACIN_DCD, 
+          AMU$SULFANILAMIDE_DCD, 
+          AMU$SULFATHIAZOLE_DCD, 
+          AMU$STREPTOMYCIN_SULF_DCD, 
+          AMU$SULFAMETHAZINE_DCD, 
+          AMU$TETRACYCLINE_DCD, 
+          AMU$NEOMYCIN_SULF_DCD, 
+          AMU$SULFAMERAZINE_DCD, 
+          AMU$SULFAGUANIDINE_DCD, 
+          AMU$SUCCINYLSULFATHIAZOLE_DCD,
+         
+          AMU$TYLOSIN_DDD, 
+          AMU$CHLORTETRACYCLINE_DDD, 
+          AMU$BENZYLPENICILLIN_P_DDD, 
+          AMU$DIHYDROSTREPTOMYCIN_DDD, 
+          AMU$POLYMYXINB_SULF_DDD, 
+          AMU$CEFAPIRIN_DDD, 
+          AMU$PIRLIMYCIN_DDD, 
+          AMU$CEFTIOFUR_DDD, 
+          AMU$CLOXACILLIN_DDD, 
+          AMU$TRIM_SULFADOXINE_DDD, 
+          AMU$OXYTETRACYCLINE_DDD, 
+          AMU$AMPICILLIN_DDD, 
+          AMU$TILMICOSIN_DDD, 
+          AMU$BENZYLPENICILLIN_B_DDD, 
+          AMU$ENROFLOXACIN_DDD, 
+          AMU$DANOFLOXACIN_DDD, 
+          AMU$TULATHROMYCIN_DDD, 
+          AMU$GAMITROMYCIN_DDD, 
+          AMU$TILDIPIROSIN_DDD, 
+          AMU$MARBOFLOXACIN_DDD, 
+          AMU$SULFANILAMIDE_DDD, 
+          AMU$SULFATHIAZOLE_DDD, 
+          AMU$STREPTOMYCIN_SULF_DDD, 
+          AMU$SULFAMETHAZINE_DDD, 
+          AMU$TETRACYCLINE_DDD, 
+          AMU$NEOMYCIN_SULF_DDD, 
+          AMU$SULFAMERAZINE_DDD, 
+          AMU$SULFAGUANIDINE_DDD, 
+          AMU$SUCCINYLSULFATHIAZOLE_DDD
+          ), 
+    by=list(AMU$Year, AMU$No.ferme), FUN=sum),
+  c( "Year",
+     "No.Ferme",
+     "TYLOSIN_DCD",
+     "CHLORTETRACYCLINE_DCD",
+     "BENZYLPENICILLIN_P_DCD", 
+     "DIHYDROSTREPTOMYCIN_DCD", 
+     "POLYMYXINB_SULF_DCD", 
+     "CEFAPIRIN_DCD", 
+     "PIRLIMYCIN_DCD", 
+     "CEFTIOFUR_DCD", 
+     "CLOXACILLIN_DCD", 
+     "TRIM_SULFADOXINE_DCD", 
+     "OXYTETRACYCLINE_DCD", 
+     "AMPICILLIN_DCD", 
+     "TILMICOSIN_DCD", 
+     "BENZYLPENICILLIN_B_DCD", 
+     "ENROFLOXACIN_DCD", 
+     "DANOFLOXACIN_DCD", 
+     "TULATHROMYCIN_DCD", 
+     "GAMITROMYCIN_DCD", 
+     "TILDIPIROSIN_DCD", 
+     "MARBOFLOXACIN_DCD", 
+     "SULFANILAMIDE_DCD", 
+     "SULFATHIAZOLE_DCD", 
+     "STREPTOMYCIN_SULF_DCD", 
+     "SULFAMETHAZINE_DCD", 
+     "TETRACYCLINE_DCD", 
+     "NEOMYCIN_SULF_DCD", 
+     "SULFAMERAZINE_DCD", 
+     "SULFAGUANIDINE_DCD", 
+     "SUCCINYLSULFATHIAZOLE_DCD",
+     
+     "TYLOSIN_DDD",
+     "CHLORTETRACYCLINE_DDD",
+     "BENZYLPENICILLIN_P_DDD", 
+     "DIHYDROSTREPTOMYCIN_DDD", 
+     "POLYMYXINB_SULF_DDD", 
+     "CEFAPIRIN_DDD", 
+     "PIRLIMYCIN_DDD", 
+     "CEFTIOFUR_DDD", 
+     "CLOXACILLIN_DDD", 
+     "TRIM_SULFADOXINE_DDD", 
+     "OXYTETRACYCLINE_DDD", 
+     "AMPICILLIN_DDD", 
+     "TILMICOSIN_DDD", 
+     "BENZYLPENICILLIN_B_DDD", 
+     "ENROFLOXACIN_DDD", 
+     "DANOFLOXACIN_DDD", 
+     "TULATHROMYCIN_DDD", 
+     "GAMITROMYCIN_DDD", 
+     "TILDIPIROSIN_DDD", 
+     "MARBOFLOXACIN_DDD", 
+     "SULFANILAMIDE_DDD", 
+     "SULFATHIAZOLE_DDD", 
+     "STREPTOMYCIN_SULF_DDD", 
+     "SULFAMETHAZINE_DDD", 
+     "TETRACYCLINE_DDD", 
+     "NEOMYCIN_SULF_DDD", 
+     "SULFAMERAZINE_DDD", 
+     "SULFAGUANIDINE_DDD", 
+     "SUCCINYLSULFATHIAZOLE_DDD"))
+
+min.agg.amu.pos <- min.agg.amu
+min.agg.amu.pos[min.agg.amu.pos < 0] <- 0
+
+#Main merge
+min.agg.amu <- merge(
+  x = min.agg.amu.pos,
+  y = inv,
+  by.x = "No.Ferme",
+  by.y = "Num_ferme",
+  all.x=TRUE
+)
+
+#Totale
+min.agg.amu$total_DCD <- apply(min.agg.amu[, 4:32],1, sum)
+min.agg.amu$total_DDD <- apply(min.agg.amu[, 33:61],1, sum)
+
+#Cat1
+min.agg.amu$cat1_DCD <- min.agg.amu$CEFTIOFUR_DCD+min.agg.amu$POLYMYXINB_SULF_DCD+min.agg.amu$DANOFLOXACIN_DCD+min.agg.amu$ENROFLOXACIN_DCD+min.agg.amu$MARBOFLOXACIN_DCD
+min.agg.amu$cat1_DDD <- min.agg.amu$CEFTIOFUR_DDD+min.agg.amu$POLYMYXINB_SULF_DDD+min.agg.amu$DANOFLOXACIN_DDD+min.agg.amu$ENROFLOXACIN_DDD+min.agg.amu$MARBOFLOXACIN_DDD 
+  
+#Cat2
+min.agg.amu$cat2_DCD <- min.agg.amu$GAMITROMYCIN_DCD+min.agg.amu$TILDIPIROSIN_DCD+min.agg.amu$TILMICOSIN_DCD+min.agg.amu$TULATHROMYCIN_DCD+min.agg.amu$TYLOSIN_DCD+min.agg.amu$DIHYDROSTREPTOMYCIN_DCD+min.agg.amu$NEOMYCIN_SULF_DCD+min.agg.amu$STREPTOMYCIN_SULF_DCD+min.agg.amu$AMPICILLIN_DCD+min.agg.amu$CEFAPIRIN_DCD+min.agg.amu$PIRLIMYCIN_DCD+min.agg.amu$CLOXACILLIN_DCD+min.agg.amu$BENZYLPENICILLIN_P_DCD+min.agg.amu$BENZYLPENICILLIN_B_DCD+min.agg.amu$TRIM_SULFADOXINE_DCD
+
+min.agg.amu$cat2_DDD <- min.agg.amu$GAMITROMYCIN_DDD+min.agg.amu$TILDIPIROSIN_DDD+min.agg.amu$TILMICOSIN_DDD+min.agg.amu$TULATHROMYCIN_DDD+min.agg.amu$TYLOSIN_DDD+min.agg.amu$DIHYDROSTREPTOMYCIN_DDD+min.agg.amu$NEOMYCIN_SULF_DDD+min.agg.amu$STREPTOMYCIN_SULF_DDD+min.agg.amu$AMPICILLIN_DDD+min.agg.amu$CEFAPIRIN_DDD+min.agg.amu$PIRLIMYCIN_DDD+min.agg.amu$CLOXACILLIN_DDD+min.agg.amu$BENZYLPENICILLIN_P_DDD+min.agg.amu$BENZYLPENICILLIN_B_DDD+min.agg.amu$TRIM_SULFADOXINE_DDD 
+ 
+#Cat3
+min.agg.amu$cat3_DCD <- min.agg.amu$CHLORTETRACYCLINE_DCD+min.agg.amu$OXYTETRACYCLINE_DCD+min.agg.amu$TETRACYCLINE_DCD+min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD+min.agg.amu$SULFAGUANIDINE_DCD+min.agg.amu$SULFAMERAZINE_DCD+min.agg.amu$SULFAMETHAZINE_DCD+min.agg.amu$SULFANILAMIDE_DCD+min.agg.amu$SULFATHIAZOLE_DCD
+
+min.agg.amu$cat3_DDD <- min.agg.amu$CHLORTETRACYCLINE_DDD+min.agg.amu$OXYTETRACYCLINE_DDD+min.agg.amu$TETRACYCLINE_DDD+min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD+min.agg.amu$SULFAGUANIDINE_DDD+min.agg.amu$SULFAMERAZINE_DDD+min.agg.amu$SULFAMETHAZINE_DDD+min.agg.amu$SULFANILAMIDE_DDD+min.agg.amu$SULFATHIAZOLE_DDD 
+
+#calculer le nombre total d'animaux
+min.agg.amu$denom <- min.agg.amu$Nb_veau+min.agg.amu$Nb_taure+min.agg.amu$Nb_vch1+min.agg.amu$Nb_vch2+min.agg.amu$Nb_tarie+min.agg.amu$Nb_taureau
+
+#Diviser les valeurs absolues par le nombre d'animaux
+#DCD
+min.agg.amu$TYLOSIN_DCD <- min.agg.amu$TYLOSIN_DCD/min.agg.amu$denom*100
+min.agg.amu$CHLORTETRACYCLINE_DCD <- min.agg.amu$CHLORTETRACYCLINE_DCD/min.agg.amu$denom*100
+min.agg.amu$BENZYLPENICILLIN_P_DCD <- min.agg.amu$BENZYLPENICILLIN_P_DCD/min.agg.amu$denom*100
+min.agg.amu$DIHYDROSTREPTOMYCIN_DCD <- min.agg.amu$DIHYDROSTREPTOMYCIN_DCD/min.agg.amu$denom*100 
+min.agg.amu$POLYMYXINB_SULF_DCD <- min.agg.amu$POLYMYXINB_SULF_DCD/min.agg.amu$denom*100
+min.agg.amu$CEFAPIRIN_DCD <- min.agg.amu$CEFAPIRIN_DCD/min.agg.amu$denom*100
+min.agg.amu$PIRLIMYCIN_DCD <- min.agg.amu$PIRLIMYCIN_DCD/min.agg.amu$denom*100
+min.agg.amu$CEFTIOFUR_DCD <- min.agg.amu$CEFTIOFUR_DCD/min.agg.amu$denom*100
+min.agg.amu$CLOXACILLIN_DCD <- min.agg.amu$CLOXACILLIN_DCD/min.agg.amu$denom*100
+min.agg.amu$TRIM_SULFADOXINE_DCD <- min.agg.amu$TRIM_SULFADOXINE_DCD/min.agg.amu$denom*100
+min.agg.amu$OXYTETRACYCLINE_DCD <- min.agg.amu$OXYTETRACYCLINE_DCD/min.agg.amu$denom*100
+min.agg.amu$AMPICILLIN_DCD <- min.agg.amu$AMPICILLIN_DCD/min.agg.amu$denom*100
+min.agg.amu$TILMICOSIN_DCD <- min.agg.amu$TILMICOSIN_DCD/min.agg.amu$denom*100
+min.agg.amu$BENZYLPENICILLIN_B_DCD <- min.agg.amu$BENZYLPENICILLIN_B_DCD/min.agg.amu$denom*100
+min.agg.amu$ENROFLOXACIN_DCD <- min.agg.amu$ENROFLOXACIN_DCD/min.agg.amu$denom*100
+min.agg.amu$DANOFLOXACIN_DCD <- min.agg.amu$DANOFLOXACIN_DCD/min.agg.amu$denom*100
+min.agg.amu$TULATHROMYCIN_DCD <- min.agg.amu$TULATHROMYCIN_DCD/min.agg.amu$denom*100
+min.agg.amu$GAMITROMYCIN_DCD <- min.agg.amu$GAMITROMYCIN_DCD/min.agg.amu$denom*100
+min.agg.amu$TILDIPIROSIN_DCD <- min.agg.amu$TILDIPIROSIN_DCD/min.agg.amu$denom*100
+min.agg.amu$MARBOFLOXACIN_DCD <- min.agg.amu$MARBOFLOXACIN_DCD/min.agg.amu$denom*100
+min.agg.amu$SULFANILAMIDE_DCD <- min.agg.amu$SULFANILAMIDE_DCD/min.agg.amu$denom*100
+min.agg.amu$SULFATHIAZOLE_DCD <- min.agg.amu$SULFATHIAZOLE_DCD/min.agg.amu$denom*100
+min.agg.amu$STREPTOMYCIN_SULF_DCD <- min.agg.amu$STREPTOMYCIN_SULF_DCD/min.agg.amu$denom*100
+min.agg.amu$SULFAMETHAZINE_DCD <- min.agg.amu$SULFAMETHAZINE_DCD/min.agg.amu$denom*100
+min.agg.amu$TETRACYCLINE_DCD <- min.agg.amu$TETRACYCLINE_DCD/min.agg.amu$denom*100
+min.agg.amu$NEOMYCIN_SULF_DCD <- min.agg.amu$NEOMYCIN_SULF_DCD/min.agg.amu$denom*100
+min.agg.amu$SULFAMERAZINE_DCD <- min.agg.amu$SULFAMERAZINE_DCD/min.agg.amu$denom*100
+min.agg.amu$SULFAGUANIDINE_DCD <- min.agg.amu$SULFAGUANIDINE_DCD/min.agg.amu$denom*100
+min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD <- min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD/min.agg.amu$denom*100
+min.agg.amu$total_DCD <- min.agg.amu$total_DCD/min.agg.amu$denom*100
+min.agg.amu$cat1_DCD <- min.agg.amu$cat1_DCD/min.agg.amu$denom*100
+min.agg.amu$cat2_DCD <- min.agg.amu$cat2_DCD/min.agg.amu$denom*100
+min.agg.amu$cat3_DCD <- min.agg.amu$cat3_DCD/min.agg.amu$denom*100
+
+#DDD
+min.agg.amu$TYLOSIN_DDD <- min.agg.amu$TYLOSIN_DDD/min.agg.amu$denom*100
+min.agg.amu$CHLORTETRACYCLINE_DDD <- min.agg.amu$CHLORTETRACYCLINE_DDD/min.agg.amu$denom*100
+min.agg.amu$BENZYLPENICILLIN_P_DDD <- min.agg.amu$BENZYLPENICILLIN_P_DDD/min.agg.amu$denom*100
+min.agg.amu$DIHYDROSTREPTOMYCIN_DDD <- min.agg.amu$DIHYDROSTREPTOMYCIN_DDD/min.agg.amu$denom*100 
+min.agg.amu$POLYMYXINB_SULF_DDD <- min.agg.amu$POLYMYXINB_SULF_DDD/min.agg.amu$denom*100
+min.agg.amu$CEFAPIRIN_DDD <- min.agg.amu$CEFAPIRIN_DDD/min.agg.amu$denom*100
+min.agg.amu$PIRLIMYCIN_DDD <- min.agg.amu$PIRLIMYCIN_DDD/min.agg.amu$denom*100
+min.agg.amu$CEFTIOFUR_DDD <- min.agg.amu$CEFTIOFUR_DDD/min.agg.amu$denom*100
+min.agg.amu$CLOXACILLIN_DDD <- min.agg.amu$CLOXACILLIN_DDD/min.agg.amu$denom*100
+min.agg.amu$TRIM_SULFADOXINE_DDD <- min.agg.amu$TRIM_SULFADOXINE_DDD/min.agg.amu$denom*100
+min.agg.amu$OXYTETRACYCLINE_DDD <- min.agg.amu$OXYTETRACYCLINE_DDD/min.agg.amu$denom*100
+min.agg.amu$AMPICILLIN_DDD <- min.agg.amu$AMPICILLIN_DDD/min.agg.amu$denom*100
+min.agg.amu$TILMICOSIN_DDD <- min.agg.amu$TILMICOSIN_DDD/min.agg.amu$denom*100
+min.agg.amu$BENZYLPENICILLIN_B_DDD <- min.agg.amu$BENZYLPENICILLIN_B_DDD/min.agg.amu$denom*100
+min.agg.amu$ENROFLOXACIN_DDD <- min.agg.amu$ENROFLOXACIN_DDD/min.agg.amu$denom*100
+min.agg.amu$DANOFLOXACIN_DDD <- min.agg.amu$DANOFLOXACIN_DDD/min.agg.amu$denom*100
+min.agg.amu$TULATHROMYCIN_DDD <- min.agg.amu$TULATHROMYCIN_DDD/min.agg.amu$denom*100
+min.agg.amu$GAMITROMYCIN_DDD <- min.agg.amu$GAMITROMYCIN_DDD/min.agg.amu$denom*100
+min.agg.amu$TILDIPIROSIN_DDD <- min.agg.amu$TILDIPIROSIN_DDD/min.agg.amu$denom*100
+min.agg.amu$MARBOFLOXACIN_DDD <- min.agg.amu$MARBOFLOXACIN_DDD/min.agg.amu$denom*100
+min.agg.amu$SULFANILAMIDE_DDD <- min.agg.amu$SULFANILAMIDE_DDD/min.agg.amu$denom*100
+min.agg.amu$SULFATHIAZOLE_DDD <- min.agg.amu$SULFATHIAZOLE_DDD/min.agg.amu$denom*100
+min.agg.amu$STREPTOMYCIN_SULF_DDD <- min.agg.amu$STREPTOMYCIN_SULF_DDD/min.agg.amu$denom*100
+min.agg.amu$SULFAMETHAZINE_DDD <- min.agg.amu$SULFAMETHAZINE_DDD/min.agg.amu$denom*100
+min.agg.amu$TETRACYCLINE_DDD <- min.agg.amu$TETRACYCLINE_DDD/min.agg.amu$denom*100
+min.agg.amu$NEOMYCIN_SULF_DDD <- min.agg.amu$NEOMYCIN_SULF_DDD/min.agg.amu$denom*100
+min.agg.amu$SULFAMERAZINE_DDD <- min.agg.amu$SULFAMERAZINE_DDD/min.agg.amu$denom*100
+min.agg.amu$SULFAGUANIDINE_DDD <- min.agg.amu$SULFAGUANIDINE_DDD/min.agg.amu$denom*100
+min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD <- min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD/min.agg.amu$denom*100
+min.agg.amu$total_DDD <- min.agg.amu$total_DDD/min.agg.amu$denom*100
+min.agg.amu$cat1_DDD <- min.agg.amu$cat1_DDD/min.agg.amu$denom*100
+min.agg.amu$cat2_DDD <- min.agg.amu$cat2_DDD/min.agg.amu$denom*100
+min.agg.amu$cat3_DDD <- min.agg.amu$cat3_DDD/min.agg.amu$denom*100
+
+
+write.csv(min.agg.amu,"data/min.csv", row.names = FALSE)
+
+```
+
