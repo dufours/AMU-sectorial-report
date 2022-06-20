@@ -1,0 +1,100 @@
+---
+title: "Exemples de figures"
+author: "Simon Dufour"
+date: "`r Sys.Date()`"
+output: 
+  html_document 
+   
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Figures AMU rapport sectoriel bovins laitiers {.tabset}
+Comparer box plot vs violin plots.
+```{r}
+#Open the datasets
+
+max <- read.csv("data/max.csv")
+min <- read.csv("data/min.csv")
+
+min$Year <- factor(min$Year)
+max$Year <- factor(max$Year)
+max$Route <- factor(max$Route)
+
+#Rename Route
+max$Route <- ifelse(max$Route=="IM_L", "IMM-Lactation",
+                    ifelse(max$Route=="IM_T", "IMM-Tarissement",
+                           ifelse(max$Route=="INJ", "Injectable", 
+                                  ifelse(max$Route=="IU", "IU", 
+                                         ifelse(max$Route=="ORAL", "PO", "Topique")))))
+
+```
+
+## Figure utilisation globale par année
+### AMU totale box-plot
+```{r, fig.cap="Taux d'utilisation des antibiotiques."}
+library(plotly)
+fig_tot <- plot_ly(min, 
+               y = ~total_DCD, 
+               color = ~Year, 
+               type = "box",
+               marker=list(color="white"))%>% #Remove markers for outlier
+  layout(title = 'Utilisation totale', 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      range = list(0, 600)), #Adjust the y axis range
+         showlegend = FALSE)%>%
+
+plotly_build()
+saveRDS(fig_tot, "Figures/Total AMU.rds")
+
+d <- readRDS("Figures/Total AMU.rds")
+d
+
+
+
+
+
+```
+### AMU totale Violin plot
+```{r, fig.cap="Taux d'utilisation des antibiotiques."}
+
+fig_tot_alt <- min %>%
+  plot_ly(
+    #x = ~Year,
+    y = ~total_DCD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig_tot_alt <- fig_tot_alt %>%
+  layout(title = 'Utilisation totale', 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      range = list(0, 600),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+        )
+plotly_build()
+saveRDS(fig_tot_alt, "Figures/Total AMU_alt.rds")
+
+e <- readRDS("Figures/Total AMU_alt.rds")
+e
+
+```
+
+
+
+
+
+

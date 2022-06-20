@@ -11,7 +11,7 @@
 
 <meta name="author" content="Simon Dufour" />
 
-<meta name="date" content="2022-05-10" />
+<meta name="date" content="2022-06-20" />
 
 <title>Organisation des jeux de données</title>
 
@@ -1512,7 +1512,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Organisation des jeux de données</h1>
 <h4 class="author">Simon Dufour</h4>
-<h4 class="date">2022-05-10</h4>
+<h4 class="date">2022-06-20</h4>
 
 </div>
 
@@ -1523,7 +1523,7 @@ comparatif</h1>
 <p>Ce script servira à organiser / explorer les jeux de données qui
 seront plus tard utilisés pour créer le prototype de rapport sectoriel.
 Aussi, les figures et tables qui seraient présentées seront esquissées
-dans ce script.</p>
+dans un autre script.</p>
 <p>D’abbord, nous pouvons importer et regrouper les jeux de données
 (n=3) contenant les ventes vétérinaires 2016-2018, 2019 et 2020. Le jeu
 de données 2016-2018 contient en fait les données de janvier 2016 à fin
@@ -1553,10 +1553,12 @@ v3 &lt;- read.csv(file=&quot;data/Ventes vet2020Out.csv&quot;, header=TRUE, sep=
 data &lt;- rbind(v1, v2, v3)</code></pre>
 <p>Ensuite, on devra assigner les numéros de fermes dans la base de
 données contenant les ventes d’antibiotiques en se basant sur les
-identifications de fermes. Pour ça, je dois importer la table qui
-contient les liens entres les NIM et numéros de projets. Ici, je garde
-cette partie du code “cachée” afin d’éviter les bris de
-confidentialité.</p>
+identifications de fermes. Pour ça, nous devons importer la table qui
+contient les liens entres les NIM et numéros de projets. Ici, nous
+gardons cette partie du script “cachée” afin d’éviter les bris de
+confidentialité. Nous avons aussi déjà exclu une première ferme (ferme
+#88) qui avait un problème majeur lors de l’extraction des données
+2016-2018 (problème Sysvet de mémoire).</p>
 <pre><code>## data3$No.ferme was converted to a data frame</code></pre>
 <pre><code>## data3$Nim.Client was converted to a data frame</code></pre>
 <div class="figure">
@@ -1578,7 +1580,8 @@ data5$No.ferme &lt;- factor(data5$No.ferme)</code></pre>
 <pre class="r"><code>#library(gmodels)
 #CrossTable(data5$No.ferme, data5$Year, prop.t=FALSE, prop.r=FALSE, prop.c=FALSE)</code></pre>
 <p>Il y aurait 16 fermes qui n’étaient plus suivies en 2020: 1, 12, 14,
-15, 21, 23, 24, 28, 31, 32, 48, 57, 69, 73, 83, 102. Je les retire:</p>
+15, 21, 23, 24, 28, 31, 32, 48, 57, 69, 73, 83, 102. Nous les
+retitons:</p>
 <pre class="r"><code>Ventes &lt;- subset(data5, (No.ferme!=1 &amp; No.ferme!=12 &amp; No.ferme!=14 &amp; No.ferme!=15 &amp; No.ferme!=21 &amp; No.ferme!=23 &amp; No.ferme!=24 &amp; No.ferme!=28 &amp; No.ferme!=31 &amp; No.ferme!=32 &amp; No.ferme!=48 &amp; No.ferme!=57 &amp; No.ferme!=69 &amp; No.ferme!=73 &amp; No.ferme!=83 &amp; No.ferme!=102))</code></pre>
 <p>Finalement, on peut vérifier le nombre de ligne de vente totales et
 de ventes d’antibiotiques en particulier.</p>
@@ -1617,53 +1620,47 @@ calculer une quantité exacte</strong>.</p>
 dim(AMU)</code></pre>
 <pre><code>## [1] 11215    99</code></pre>
 <p>À partir d’ici, il faudra additionner, par année et pour chaque ferme
-la quantité d’antibiotique utilisé. <strong>Quelques décisions à
-discuter:</strong></p>
+la quantité d’antibiotique utilisé. <strong>Voici quelques décisions qui
+ont été prises en groupe:</strong></p>
 <ul>
 <li><p>On pourrait laisser aux lecteurs le choix de l’unité utilisée
-pour lire le rapport. Personnellement, étant donné la manière dont les
-antibiotiques sont utilisés en production laitière et la manière dont
-les indices sont calculés:</p>
-<ol style="list-style-type: decimal">
-<li>Mon premier choix serait de ne présenter que DCDbovCA (traitements
-standardisés).<br />
-</li>
-<li>Alternativement, ont pourrait présenter DCDbovCA par défaut et
-permettre à l’utilisateur de changer à DDDbovCA (dose journalière). Le
-désavantage des DDDbovCA réside dans le calcul des traitements au
-tarissement (qui est plutôt empirique pour cette utilisation) et, à un
-moindre degré, pour les autres antibiotiques à longue action.<br />
-</li>
-<li>Je crois qu’on ne devrait simplement pas présenter en g. C’est une
-unité qui ne fait pas de sens concernant l’AMU/l’AMR sauf dans les cas
-où il est impossible d’obtenir des données en DCD ou DDD (ce qui n’est
-pas le cas ici).</li>
-</ol></li>
-<li><p>On pourrait d’office présenter une figure sur l’utilisation
-totale et 3 figures présentant l’utilisation par catégories (I, II et
-III seulement). Pour les catégorie IV, il s’agit principalement du
-Monensin, du Lasalocide sodique et de la Novobiocine. Pour l’instant, le
-Monensin se retrouve surtout dans les aliments (prescriptions
-alimentaires) et un peu dans les ventes (bolus). La compilation du
-Monensin dans les données de ventes est donc parcellaire. Le lasalocide
-sodique sera presque entièrement dans les données de prescriptions
-alimentaires. Je crois donc qu’il faut éviter de compiler les catégories
-IV et, surtout, de les compiler dans le total (puisque ce sera
-incomplet). Étant donné leur faible importance, c’est beaucoup plus
-simple, à ce stade. de les exclure des calculs.</p></li>
-<li><p>Pour ce qui est des voies d’administration, ont pourrait
-permettre aux lecteurs “d’exploser” ou non les 4 figures précédentes par
-voie d’administration?</p></li>
+pour lire le rapport. Nouys avons décidé de laisser le choix aux
+lecteurs entre DCDbovCA (traitements standardisés) et DDDbovCA (dose
+journalière).</p></li>
+<li><p>On pourrait d’office présenter une figure sur
+l’<strong>utilisation totale</strong> et 3 figures présentant
+l’<strong>utilisation par catégories</strong> (I, II et III seulement).
+Pour les catégorie IV, il s’agit principalement du Monensin et du
+Lasalocide sodique. Pour l’instant, le Monensin se retrouve surtout dans
+les aliments (prescriptions alimentaires) et un peu dans les ventes
+(bolus). La compilation du Monensin dans les données de ventes est donc
+parcellaire. Le lasalocide sodique sera presque entièrement dans les
+données de prescriptions alimentaires. Je crois donc qu’il faut éviter
+de compiler les catégories IV et, surtout, de les compiler dans le total
+(puisque ce sera incomplet). Étant donné leur faible importance, c’est
+beaucoup plus simple, à ce stade. de les exclure des calculs.</p></li>
+<li><p>Une figure <strong>par voie d’administration</strong> sera
+également disponible, de même que des figures par <strong>familles
+d’antibiotiques</strong> et <strong>par molécule</strong>.</p></li>
+<li><p>Au dénominateur, nous standardiserons les taux d’AMU par nombre
+de vaches adultes (lactation + taries).</p></li>
+<li><p>La novobiocine n’est pas présentement catégorisée par Santé
+Canada. Aussi, les produits bovins contenant de la novobiocine ont tous
+été discontinués. Cette molécule ne sera donc pas compilée dans le
+rapport.</p></li>
+<li><p>Techniquement, ce serait plus simple de compiler les indices par
+ferme, par année ici, puis de générer et sauvegarder les figures. Le
+script pour l’interface aura alors seulement à “appeller” les bonnes
+figures et sera alors plus rapide (i.e., plus réactif). Sinon, avec une
+base de données complète, et/ou la génération des figures dans
+l’interface, l’interface pourrait être lente.</p></li>
 </ul>
-<p>-Techniquement, si ont s’entend sur les indices à utiliser et les
-figures à présenter, je crois que ce serait plus simple de compiler les
-indices par ferme, par année ici, puis de générer le script pour
-l’interface qui sera alors plus rapide (i.e., plus réactif). Sinon, avec
-une base de données complète, l’interface pourrait être lente.</p>
 <div id="calculs-des-indices-pré-interface" class="section level2">
 <h2>Calculs des indices pré-interface</h2>
 <p>Je vais donc déjà calculer les différents indices d’intérêt dans les
 lignes suivantes.</p>
+<div id="section" class="section level3">
+<h3></h3>
 <pre class="r"><code>#First summarize by farm, year and administration route. This will be the table with the maximum possibilities in term of exploding the data.
 Agg.amu &lt;- setNames(
   aggregate(
@@ -1696,6 +1693,7 @@ Agg.amu &lt;- setNames(
           AMU$SULFAMERAZINE_DCD, 
           AMU$SULFAGUANIDINE_DCD, 
           AMU$SUCCINYLSULFATHIAZOLE_DCD,
+          AMU$FLORFENICOL_DCD,
          
           AMU$TYLOSIN_DDD, 
           AMU$CHLORTETRACYCLINE_DDD, 
@@ -1725,7 +1723,8 @@ Agg.amu &lt;- setNames(
           AMU$NEOMYCIN_SULF_DDD, 
           AMU$SULFAMERAZINE_DDD, 
           AMU$SULFAGUANIDINE_DDD, 
-          AMU$SUCCINYLSULFATHIAZOLE_DDD
+          AMU$SUCCINYLSULFATHIAZOLE_DDD,
+          AMU$FLORFENICOL_DDD
           ), 
     by=list(AMU$Year, AMU$No.ferme, AMU$ROUTE), FUN=sum),
   c( &quot;Year&quot;,
@@ -1760,6 +1759,7 @@ Agg.amu &lt;- setNames(
      &quot;SULFAMERAZINE_DCD&quot;, 
      &quot;SULFAGUANIDINE_DCD&quot;, 
      &quot;SUCCINYLSULFATHIAZOLE_DCD&quot;,
+     &quot;FLORFENICOL_DCD&quot;,
      
      &quot;TYLOSIN_DDD&quot;,
      &quot;CHLORTETRACYCLINE_DDD&quot;,
@@ -1789,16 +1789,25 @@ Agg.amu &lt;- setNames(
      &quot;NEOMYCIN_SULF_DDD&quot;, 
      &quot;SULFAMERAZINE_DDD&quot;, 
      &quot;SULFAGUANIDINE_DDD&quot;, 
-     &quot;SUCCINYLSULFATHIAZOLE_DDD&quot;))</code></pre>
+     &quot;SUCCINYLSULFATHIAZOLE_DDD&quot;,
+     &quot;FLORFENICOL_DDD&quot;))</code></pre>
 <p>En compilant, <strong>il y aura parfois des “retour de produits” un
 certaine année, sans achat dans cette catégorie, ce qui occasionnera des
 DDD et DCD négatives pour certaines ferme-année (1 ou 2 ferme-années
-dans le jeu de données de 85 troupeau et 4 années). À ce stade, je crois
-qu’on devrait les écarter.</strong> À noter, cela arrive ici parce que
+dans le jeu de données de 85 troupeau et 4 années). À ce stade, nous
+avons décidé de les écarter.</strong> À noter, cela arrive ici parce que
 nous sommes en produits compilés par molécule, par ferme, par année et
 par voie d’administration; il y a donc parfois très peu de produits dans
 une catégorie donnée. Plus loin, lorsqu’on compilera par ferme-année, ce
 sera moins problématique.</p>
+<p>Nombre de lignes négatives (sur 1685 lignes):<br />
+- 17900 2 fermes 1 an<br />
+- Cefa IU 1 ferme 1 an<br />
+- Cefa IM-L 2 fermes 1 an<br />
+- Oxytet Inj 2 fermes 1 an<br />
+- Tulathro Inj 1 ferme<br />
+- Gamithro Inj 1 ferme<br />
+- Sulfa oral 1 ferme</p>
 <pre class="r"><code>Agg.amu.pos &lt;- Agg.amu
 Agg.amu.pos[Agg.amu.pos &lt; 0] &lt;- 0</code></pre>
 <pre><code>## Warning in Ops.factor(left, right): &#39;&lt;&#39; n&#39;est pas pertinent pour des variables
@@ -1826,15 +1835,14 @@ max.agg.amu &lt;- merge(
   all.x=TRUE
 )</code></pre>
 </div>
+</div>
 <div id="calcul-des-indices-pour-la-table-ferme-année-route-et-ferme-année" class="section level2">
 <h2>Calcul des indices pour la table ferme-année-route et
 ferme-année</h2>
 <p>Deux tables seront nécessaires pour les calculs. Une avec les données
 par ferme-année (qui servira pour la plupart des figures de base), une
 autre avec les données par ferme-année-route d’administration (pour
-l’explosion des données par voie d’administration). Alternativement, la
-première table pourrait être compilée à l’interieur du script
-<code>Shiny</code> produisant l’interface.</p>
+l’explosion des données par voie d’administration).</p>
 <div id="utilisation-par-ferme-année-et-voie-dadministration" class="section level3">
 <h3>Utilisation par ferme, année et voie d’administration</h3>
 <pre class="r"><code>#Totale
@@ -1851,22 +1859,76 @@ max.agg.amu$cat2_DCD &lt;- max.agg.amu$GAMITROMYCIN_DCD+max.agg.amu$TILDIPIROSIN
 max.agg.amu$cat2_DDD &lt;- max.agg.amu$GAMITROMYCIN_DDD+max.agg.amu$TILDIPIROSIN_DDD+max.agg.amu$TILMICOSIN_DDD+max.agg.amu$TULATHROMYCIN_DDD+max.agg.amu$TYLOSIN_DDD+max.agg.amu$DIHYDROSTREPTOMYCIN_DDD+max.agg.amu$NEOMYCIN_SULF_DDD+max.agg.amu$STREPTOMYCIN_SULF_DDD+max.agg.amu$AMPICILLIN_DDD+max.agg.amu$CEFAPIRIN_DDD+max.agg.amu$PIRLIMYCIN_DDD+max.agg.amu$CLOXACILLIN_DDD+max.agg.amu$BENZYLPENICILLIN_P_DDD+max.agg.amu$BENZYLPENICILLIN_B_DDD+max.agg.amu$TRIM_SULFADOXINE_DDD 
  
 #Cat3
-max.agg.amu$cat3_DCD &lt;- max.agg.amu$CHLORTETRACYCLINE_DCD+max.agg.amu$OXYTETRACYCLINE_DCD+max.agg.amu$TETRACYCLINE_DCD+max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD+max.agg.amu$SULFAGUANIDINE_DCD+max.agg.amu$SULFAMERAZINE_DCD+max.agg.amu$SULFAMETHAZINE_DCD+max.agg.amu$SULFANILAMIDE_DCD+max.agg.amu$SULFATHIAZOLE_DCD
+max.agg.amu$cat3_DCD &lt;- max.agg.amu$CHLORTETRACYCLINE_DCD+max.agg.amu$OXYTETRACYCLINE_DCD+max.agg.amu$TETRACYCLINE_DCD+max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD+max.agg.amu$SULFAGUANIDINE_DCD+max.agg.amu$SULFAMERAZINE_DCD+max.agg.amu$SULFAMETHAZINE_DCD+max.agg.amu$SULFANILAMIDE_DCD+max.agg.amu$SULFATHIAZOLE_DCD+max.agg.amu$FLORFENICOL_DCD
 
-max.agg.amu$cat3_DDD &lt;- max.agg.amu$CHLORTETRACYCLINE_DDD+max.agg.amu$OXYTETRACYCLINE_DDD+max.agg.amu$TETRACYCLINE_DDD+max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD+max.agg.amu$SULFAGUANIDINE_DDD+max.agg.amu$SULFAMERAZINE_DDD+max.agg.amu$SULFAMETHAZINE_DDD+max.agg.amu$SULFANILAMIDE_DDD+max.agg.amu$SULFATHIAZOLE_DDD </code></pre>
-</div>
-<div id="standardization-par-100-vaches-année" class="section level3">
-<h3>Standardization par 100 vaches-année</h3>
-<p>Présentement, les indices sont en nombre absolus de DDDbovCA et
-DCDbovCA. Ces valeurs doivent être standardisées par unité de production
-pour pouvoir avoir des <strong>taux d’utilisation</strong>. Dans le
-futur (avec les ajouts de champs dans Vet Expert), ce pourra seulement
-être le nombre d’animaux de &lt;24 mois, le nombre d’animaux de &gt;24
-mois, ou la somme des deux (i.e. nombre d’animaux total). <strong>Pour
-le moment, je prendrais le nombre d’animaux total comme
-dénominateur.</strong></p>
-<pre class="r"><code>#calculer le nombre total d&#39;animaux
-max.agg.amu$denom &lt;- max.agg.amu$Nb_veau+max.agg.amu$Nb_taure+max.agg.amu$Nb_vch1+max.agg.amu$Nb_vch2+max.agg.amu$Nb_tarie+max.agg.amu$Nb_taureau
+max.agg.amu$cat3_DDD &lt;- max.agg.amu$CHLORTETRACYCLINE_DDD+max.agg.amu$OXYTETRACYCLINE_DDD+max.agg.amu$TETRACYCLINE_DDD+max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD+max.agg.amu$SULFAGUANIDINE_DDD+max.agg.amu$SULFAMERAZINE_DDD+max.agg.amu$SULFAMETHAZINE_DDD+max.agg.amu$SULFANILAMIDE_DDD+max.agg.amu$SULFATHIAZOLE_DDD+max.agg.amu$FLORFENICOL_DCD 
+
+#By family
+#Penicillins with extended spectrum
+max.agg.amu$PenES_DCD &lt;- max.agg.amu$AMPICILLIN_DCD
+max.agg.amu$PenES_DDD &lt;- max.agg.amu$AMPICILLIN_DDD
+
+#Beta-lactamase resistant penicillins
+max.agg.amu$BLResPen_DCD &lt;- max.agg.amu$CLOXACILLIN_DCD
+max.agg.amu$BLResPen_DDD &lt;- max.agg.amu$CLOXACILLIN_DDD
+
+#Beta-lactamase sensitive penicillins
+max.agg.amu$BLSensPen_DCD &lt;- max.agg.amu$BENZYLPENICILLIN_P_DCD + max.agg.amu$BENZYLPENICILLIN_B_DCD
+max.agg.amu$BLSensPen_DDD &lt;- max.agg.amu$BENZYLPENICILLIN_P_DDD + max.agg.amu$BENZYLPENICILLIN_B_DDD
+
+#First generation cephalosporin
+max.agg.amu$FGCeph_DCD &lt;- max.agg.amu$CEFAPIRIN_DCD
+max.agg.amu$FGCeph_DDD &lt;- max.agg.amu$CEFAPIRIN_DDD
+
+#Third-generation cephalosporins
+max.agg.amu$TGCeph_DCD &lt;- max.agg.amu$CEFTIOFUR_DCD
+max.agg.amu$TGCeph_DDD &lt;- max.agg.amu$CEFTIOFUR_DDD
+
+#Fluoroquinolones
+max.agg.amu$Fluoro_DCD &lt;- max.agg.amu$DANOFLOXACIN_DCD + max.agg.amu$ENROFLOXACIN_DCD + max.agg.amu$MARBOFLOXACIN_DCD
+max.agg.amu$Fluoro_DDD &lt;- max.agg.amu$DANOFLOXACIN_DDD + max.agg.amu$ENROFLOXACIN_DDD + max.agg.amu$MARBOFLOXACIN_DDD
+
+#Amphenicols
+max.agg.amu$Amph_DCD &lt;- max.agg.amu$FLORFENICOL_DCD
+max.agg.amu$Amph_DDD &lt;- max.agg.amu$FLORFENICOL_DDD
+
+#Macrolides
+max.agg.amu$Macr_DCD &lt;- max.agg.amu$GAMITROMYCIN_DCD + max.agg.amu$TILMICOSIN_DCD + max.agg.amu$TILDIPIROSIN_DCD + max.agg.amu$TYLOSIN_DCD + max.agg.amu$TULATHROMYCIN_DCD
+max.agg.amu$Macr_DDD &lt;- max.agg.amu$GAMITROMYCIN_DDD + max.agg.amu$TILMICOSIN_DDD + max.agg.amu$TILDIPIROSIN_DDD + max.agg.amu$TYLOSIN_DDD + max.agg.amu$TULATHROMYCIN_DDD
+
+#Tetracyclines
+max.agg.amu$Tetr_DCD &lt;- max.agg.amu$CHLORTETRACYCLINE_DCD + max.agg.amu$OXYTETRACYCLINE_DCD + max.agg.amu$TETRACYCLINE_DCD
+max.agg.amu$Tetr_DDD &lt;- max.agg.amu$CHLORTETRACYCLINE_DDD + max.agg.amu$OXYTETRACYCLINE_DDD + max.agg.amu$TETRACYCLINE_DDD
+
+#Aminoglycosides
+max.agg.amu$Amin_DCD &lt;- max.agg.amu$NEOMYCIN_SULF_DCD +  max.agg.amu$STREPTOMYCIN_SULF_DCD + max.agg.amu$DIHYDROSTREPTOMYCIN_DCD
+max.agg.amu$Amin_DDD &lt;- max.agg.amu$NEOMYCIN_SULF_DDD +  max.agg.amu$STREPTOMYCIN_SULF_DDD + max.agg.amu$DIHYDROSTREPTOMYCIN_DDD
+
+#Sulfonamides
+max.agg.amu$Sulf_DCD &lt;- max.agg.amu$SULFANILAMIDE_DCD + max.agg.amu$SULFATHIAZOLE_DCD + max.agg.amu$SULFAMETHAZINE_DCD + max.agg.amu$SULFAMERAZINE_DCD + max.agg.amu$SULFAGUANIDINE_DCD + max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD
+max.agg.amu$Sulf_DDD &lt;- max.agg.amu$SULFANILAMIDE_DDD + max.agg.amu$SULFATHIAZOLE_DDD + max.agg.amu$SULFAMETHAZINE_DDD + max.agg.amu$SULFAMERAZINE_DDD + max.agg.amu$SULFAGUANIDINE_DDD + max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD
+
+#Lincosamides
+max.agg.amu$Linco_DCD &lt;- max.agg.amu$PIRLIMYCIN_DCD
+max.agg.amu$Linco_DDD &lt;- max.agg.amu$PIRLIMYCIN_DDD
+
+#Polymyxins
+max.agg.amu$Poly_DCD &lt;- max.agg.amu$POLYMYXINB_SULF_DCD
+max.agg.amu$Poly_DDD &lt;- max.agg.amu$POLYMYXINB_SULF_DDD
+
+#TMS
+max.agg.amu$TMS_DCD &lt;- max.agg.amu$TRIM_SULFADOXINE_DCD
+max.agg.amu$TMS_DDD &lt;- max.agg.amu$TRIM_SULFADOXINE_DDD</code></pre>
+<p><strong>Standardization par 100 vaches-année</strong> Présentement,
+les indices sont en nombre absolus de DDDbovCA et DCDbovCA. Ces valeurs
+doivent être standardisées par unité de production pour pouvoir avoir
+des <strong>taux d’utilisation</strong>. Dans le futur (avec les ajouts
+de champs dans Vet Expert), ce pourra seulement être le nombre d’animaux
+de &lt;24 mois, le nombre d’animaux de &gt;24 mois, ou la somme des deux
+(i.e. nombre d’animaux total). <strong>Pour le moment, je prendrais le
+nombre d’animaux total comme dénominateur.</strong></p>
+<pre class="r"><code>#calculer le nombre total de vaches adultes
+max.agg.amu$denom &lt;- max.agg.amu$Nb_vch1+max.agg.amu$Nb_vch2+max.agg.amu$Nb_tarie
 
 #Diviser les valeurs absolues par le nombre d&#39;animaux
 #DCD
@@ -1899,10 +1961,27 @@ max.agg.amu$NEOMYCIN_SULF_DCD &lt;- max.agg.amu$NEOMYCIN_SULF_DCD/max.agg.amu$de
 max.agg.amu$SULFAMERAZINE_DCD &lt;- max.agg.amu$SULFAMERAZINE_DCD/max.agg.amu$denom*100
 max.agg.amu$SULFAGUANIDINE_DCD &lt;- max.agg.amu$SULFAGUANIDINE_DCD/max.agg.amu$denom*100
 max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD &lt;- max.agg.amu$SUCCINYLSULFATHIAZOLE_DCD/max.agg.amu$denom*100
+max.agg.amu$FLORFENICOL_DCD &lt;- max.agg.amu$FLORFENICOL_DCD/max.agg.amu$denom*100
+
 max.agg.amu$total_DCD &lt;- max.agg.amu$total_DCD/max.agg.amu$denom*100
 max.agg.amu$cat1_DCD &lt;- max.agg.amu$cat1_DCD/max.agg.amu$denom*100
 max.agg.amu$cat2_DCD &lt;- max.agg.amu$cat2_DCD/max.agg.amu$denom*100
 max.agg.amu$cat3_DCD &lt;- max.agg.amu$cat3_DCD/max.agg.amu$denom*100
+
+max.agg.amu$PenES_DCD &lt;- max.agg.amu$PenES_DCD/max.agg.amu$denom*100
+max.agg.amu$BLResPen_DCD &lt;- max.agg.amu$BLResPen_DCD/max.agg.amu$denom*100
+max.agg.amu$BLSensPen_DCD &lt;- max.agg.amu$BLSensPen_DCD/max.agg.amu$denom*100
+max.agg.amu$FGCeph_DCD &lt;- max.agg.amu$FGCeph_DCD/max.agg.amu$denom*100
+max.agg.amu$TGCeph_DCD &lt;- max.agg.amu$TGCeph_DCD/max.agg.amu$denom*100
+max.agg.amu$Fluoro_DCD &lt;- max.agg.amu$Fluoro_DCD/max.agg.amu$denom*100
+max.agg.amu$Amph_DCD &lt;- max.agg.amu$Amph_DCD/max.agg.amu$denom*100
+max.agg.amu$Macr_DCD &lt;- max.agg.amu$Macr_DCD/max.agg.amu$denom*100
+max.agg.amu$Tetr_DCD &lt;- max.agg.amu$Tetr_DCD/max.agg.amu$denom*100
+max.agg.amu$Amin_DCD &lt;- max.agg.amu$Amin_DCD/max.agg.amu$denom*100
+max.agg.amu$Sulf_DCD &lt;- max.agg.amu$Sulf_DCD/max.agg.amu$denom*100
+max.agg.amu$Linco_DCD &lt;- max.agg.amu$Linco_DCD/max.agg.amu$denom*100
+max.agg.amu$Poly_DCD &lt;- max.agg.amu$Poly_DCD/max.agg.amu$denom*100
+max.agg.amu$TMS_DCD &lt;- max.agg.amu$TMS_DCD/max.agg.amu$denom*100
 
 #DDD
 max.agg.amu$TYLOSIN_DDD &lt;- max.agg.amu$TYLOSIN_DDD/max.agg.amu$denom*100
@@ -1934,17 +2013,37 @@ max.agg.amu$NEOMYCIN_SULF_DDD &lt;- max.agg.amu$NEOMYCIN_SULF_DDD/max.agg.amu$de
 max.agg.amu$SULFAMERAZINE_DDD &lt;- max.agg.amu$SULFAMERAZINE_DDD/max.agg.amu$denom*100
 max.agg.amu$SULFAGUANIDINE_DDD &lt;- max.agg.amu$SULFAGUANIDINE_DDD/max.agg.amu$denom*100
 max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD &lt;- max.agg.amu$SUCCINYLSULFATHIAZOLE_DDD/max.agg.amu$denom*100
+max.agg.amu$FLORFENICOL_DDD &lt;- max.agg.amu$FLORFENICOL_DDD/max.agg.amu$denom*100
+
 max.agg.amu$total_DDD &lt;- max.agg.amu$total_DDD/max.agg.amu$denom*100
 max.agg.amu$cat1_DDD &lt;- max.agg.amu$cat1_DDD/max.agg.amu$denom*100
 max.agg.amu$cat2_DDD &lt;- max.agg.amu$cat2_DDD/max.agg.amu$denom*100
 max.agg.amu$cat3_DDD &lt;- max.agg.amu$cat3_DDD/max.agg.amu$denom*100
 
+max.agg.amu$PenES_DDD &lt;- max.agg.amu$PenES_DDD/max.agg.amu$denom*100
+max.agg.amu$BLResPen_DDD &lt;- max.agg.amu$BLResPen_DDD/max.agg.amu$denom*100
+max.agg.amu$BLSensPen_DDD &lt;- max.agg.amu$BLSensPen_DDD/max.agg.amu$denom*100
+max.agg.amu$FGCeph_DDD &lt;- max.agg.amu$FGCeph_DDD/max.agg.amu$denom*100
+max.agg.amu$TGCeph_DDD &lt;- max.agg.amu$TGCeph_DDD/max.agg.amu$denom*100
+max.agg.amu$Fluoro_DDD &lt;- max.agg.amu$Fluoro_DDD/max.agg.amu$denom*100
+max.agg.amu$Amph_DDD &lt;- max.agg.amu$Amph_DDD/max.agg.amu$denom*100
+max.agg.amu$Macr_DDD &lt;- max.agg.amu$Macr_DDD/max.agg.amu$denom*100
+max.agg.amu$Tetr_DDD &lt;- max.agg.amu$Tetr_DDD/max.agg.amu$denom*100
+max.agg.amu$Amin_DDD &lt;- max.agg.amu$Amin_DDD/max.agg.amu$denom*100
+max.agg.amu$Sulf_DDD &lt;- max.agg.amu$Sulf_DDD/max.agg.amu$denom*100
+max.agg.amu$Linco_DDD &lt;- max.agg.amu$Linco_DDD/max.agg.amu$denom*100
+max.agg.amu$Poly_DDD &lt;- max.agg.amu$Poly_DDD/max.agg.amu$denom*100
+max.agg.amu$TMS_DDD &lt;- max.agg.amu$TMS_DDD/max.agg.amu$denom*100</code></pre>
+<p>Avant de finaliser la table, je vais retirer les nombres d’animaux
+afin d’éviter tout recoupement qui pourrait mener à un bris de
+confidentialité. Puis j’enregistre la table.</p>
+<pre class="r"><code>max.agg.amu2 &lt;- max.agg.amu[ -c(64:72, 109) ]
 
-write.csv(max.agg.amu,&quot;data/max.csv&quot;, row.names = FALSE)</code></pre>
+write.csv(max.agg.amu2,&quot;data/max.csv&quot;, row.names = FALSE)</code></pre>
 </div>
 <div id="utilisation-par-ferme-année" class="section level3">
 <h3>Utilisation par ferme-année</h3>
-<pre class="r"><code>#Then summarize by farm and year aonly. This will be the table with the minimum possibilities in term of exploding the data.
+<pre class="r"><code>#Then summarize by farm and year only. This will be the table with the minimum possibilities in term of exploding the data.
 min.agg.amu &lt;- setNames(
   aggregate(
     cbind(AMU$TYLOSIN_DCD, 
@@ -1976,6 +2075,7 @@ min.agg.amu &lt;- setNames(
           AMU$SULFAMERAZINE_DCD, 
           AMU$SULFAGUANIDINE_DCD, 
           AMU$SUCCINYLSULFATHIAZOLE_DCD,
+          AMU$FLORFENICOL_DCD,
          
           AMU$TYLOSIN_DDD, 
           AMU$CHLORTETRACYCLINE_DDD, 
@@ -2005,8 +2105,8 @@ min.agg.amu &lt;- setNames(
           AMU$NEOMYCIN_SULF_DDD, 
           AMU$SULFAMERAZINE_DDD, 
           AMU$SULFAGUANIDINE_DDD, 
-          AMU$SUCCINYLSULFATHIAZOLE_DDD
-          ), 
+          AMU$SUCCINYLSULFATHIAZOLE_DDD,
+          AMU$FLORFENICOL_DDD), 
     by=list(AMU$Year, AMU$No.ferme), FUN=sum),
   c( &quot;Year&quot;,
      &quot;No.Ferme&quot;,
@@ -2039,6 +2139,7 @@ min.agg.amu &lt;- setNames(
      &quot;SULFAMERAZINE_DCD&quot;, 
      &quot;SULFAGUANIDINE_DCD&quot;, 
      &quot;SUCCINYLSULFATHIAZOLE_DCD&quot;,
+     &quot;FLORFENICOL_DCD&quot;,
      
      &quot;TYLOSIN_DDD&quot;,
      &quot;CHLORTETRACYCLINE_DDD&quot;,
@@ -2068,7 +2169,8 @@ min.agg.amu &lt;- setNames(
      &quot;NEOMYCIN_SULF_DDD&quot;, 
      &quot;SULFAMERAZINE_DDD&quot;, 
      &quot;SULFAGUANIDINE_DDD&quot;, 
-     &quot;SUCCINYLSULFATHIAZOLE_DDD&quot;))
+     &quot;SUCCINYLSULFATHIAZOLE_DDD&quot;,
+     &quot;FLORFENICOL_DDD&quot;))
 
 min.agg.amu.pos &lt;- min.agg.amu
 min.agg.amu.pos[min.agg.amu.pos &lt; 0] &lt;- 0</code></pre>
@@ -2100,12 +2202,70 @@ min.agg.amu$cat2_DCD &lt;- min.agg.amu$GAMITROMYCIN_DCD+min.agg.amu$TILDIPIROSIN
 min.agg.amu$cat2_DDD &lt;- min.agg.amu$GAMITROMYCIN_DDD+min.agg.amu$TILDIPIROSIN_DDD+min.agg.amu$TILMICOSIN_DDD+min.agg.amu$TULATHROMYCIN_DDD+min.agg.amu$TYLOSIN_DDD+min.agg.amu$DIHYDROSTREPTOMYCIN_DDD+min.agg.amu$NEOMYCIN_SULF_DDD+min.agg.amu$STREPTOMYCIN_SULF_DDD+min.agg.amu$AMPICILLIN_DDD+min.agg.amu$CEFAPIRIN_DDD+min.agg.amu$PIRLIMYCIN_DDD+min.agg.amu$CLOXACILLIN_DDD+min.agg.amu$BENZYLPENICILLIN_P_DDD+min.agg.amu$BENZYLPENICILLIN_B_DDD+min.agg.amu$TRIM_SULFADOXINE_DDD 
  
 #Cat3
-min.agg.amu$cat3_DCD &lt;- min.agg.amu$CHLORTETRACYCLINE_DCD+min.agg.amu$OXYTETRACYCLINE_DCD+min.agg.amu$TETRACYCLINE_DCD+min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD+min.agg.amu$SULFAGUANIDINE_DCD+min.agg.amu$SULFAMERAZINE_DCD+min.agg.amu$SULFAMETHAZINE_DCD+min.agg.amu$SULFANILAMIDE_DCD+min.agg.amu$SULFATHIAZOLE_DCD
+min.agg.amu$cat3_DCD &lt;- min.agg.amu$CHLORTETRACYCLINE_DCD+min.agg.amu$OXYTETRACYCLINE_DCD+min.agg.amu$TETRACYCLINE_DCD+min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD+min.agg.amu$SULFAGUANIDINE_DCD+min.agg.amu$SULFAMERAZINE_DCD+min.agg.amu$SULFAMETHAZINE_DCD+min.agg.amu$SULFANILAMIDE_DCD+min.agg.amu$SULFATHIAZOLE_DCD+min.agg.amu$FLORFENICOL_DCD
 
-min.agg.amu$cat3_DDD &lt;- min.agg.amu$CHLORTETRACYCLINE_DDD+min.agg.amu$OXYTETRACYCLINE_DDD+min.agg.amu$TETRACYCLINE_DDD+min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD+min.agg.amu$SULFAGUANIDINE_DDD+min.agg.amu$SULFAMERAZINE_DDD+min.agg.amu$SULFAMETHAZINE_DDD+min.agg.amu$SULFANILAMIDE_DDD+min.agg.amu$SULFATHIAZOLE_DDD 
+min.agg.amu$cat3_DDD &lt;- min.agg.amu$CHLORTETRACYCLINE_DDD+min.agg.amu$OXYTETRACYCLINE_DDD+min.agg.amu$TETRACYCLINE_DDD+min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD+min.agg.amu$SULFAGUANIDINE_DDD+min.agg.amu$SULFAMERAZINE_DDD+min.agg.amu$SULFAMETHAZINE_DDD+min.agg.amu$SULFANILAMIDE_DDD+min.agg.amu$SULFATHIAZOLE_DDD+min.agg.amu$FLORFENICOL_DDD 
+
+#By family
+#Penicillins with extended spectrum
+min.agg.amu$PenES_DCD &lt;- min.agg.amu$AMPICILLIN_DCD
+min.agg.amu$PenES_DDD &lt;- min.agg.amu$AMPICILLIN_DDD
+
+#Beta-lactamase resistant penicillins
+min.agg.amu$BLResPen_DCD &lt;- min.agg.amu$CLOXACILLIN_DCD
+min.agg.amu$BLResPen_DDD &lt;- min.agg.amu$CLOXACILLIN_DDD
+
+#Beta-lactamase sensitive penicillins
+min.agg.amu$BLSensPen_DCD &lt;- min.agg.amu$BENZYLPENICILLIN_P_DCD + min.agg.amu$BENZYLPENICILLIN_B_DCD
+min.agg.amu$BLSensPen_DDD &lt;- min.agg.amu$BENZYLPENICILLIN_P_DDD + min.agg.amu$BENZYLPENICILLIN_B_DDD
+
+#First generation cephalosporin
+min.agg.amu$FGCeph_DCD &lt;- min.agg.amu$CEFAPIRIN_DCD
+min.agg.amu$FGCeph_DDD &lt;- min.agg.amu$CEFAPIRIN_DDD
+
+#Third-generation cephalosporins
+min.agg.amu$TGCeph_DCD &lt;- min.agg.amu$CEFTIOFUR_DCD
+min.agg.amu$TGCeph_DDD &lt;- min.agg.amu$CEFTIOFUR_DDD
+
+#Fluoroquinolones
+min.agg.amu$Fluoro_DCD &lt;- min.agg.amu$DANOFLOXACIN_DCD + min.agg.amu$ENROFLOXACIN_DCD + min.agg.amu$MARBOFLOXACIN_DCD
+min.agg.amu$Fluoro_DDD &lt;- min.agg.amu$DANOFLOXACIN_DDD + min.agg.amu$ENROFLOXACIN_DDD + min.agg.amu$MARBOFLOXACIN_DDD
+
+#Amphenicols
+min.agg.amu$Amph_DCD &lt;- min.agg.amu$FLORFENICOL_DCD
+min.agg.amu$Amph_DDD &lt;- min.agg.amu$FLORFENICOL_DDD
+
+#Macrolides
+min.agg.amu$Macr_DCD &lt;- min.agg.amu$GAMITROMYCIN_DCD + min.agg.amu$TILMICOSIN_DCD + min.agg.amu$TILDIPIROSIN_DCD + min.agg.amu$TYLOSIN_DCD + min.agg.amu$TULATHROMYCIN_DCD
+min.agg.amu$Macr_DDD &lt;- min.agg.amu$GAMITROMYCIN_DDD + min.agg.amu$TILMICOSIN_DDD + min.agg.amu$TILDIPIROSIN_DDD + min.agg.amu$TYLOSIN_DDD + min.agg.amu$TULATHROMYCIN_DDD
+
+#Tetracyclines
+min.agg.amu$Tetr_DCD &lt;- min.agg.amu$CHLORTETRACYCLINE_DCD + min.agg.amu$OXYTETRACYCLINE_DCD + min.agg.amu$TETRACYCLINE_DCD
+min.agg.amu$Tetr_DDD &lt;- min.agg.amu$CHLORTETRACYCLINE_DDD + min.agg.amu$OXYTETRACYCLINE_DDD + min.agg.amu$TETRACYCLINE_DDD
+
+#Aminoglycosides
+min.agg.amu$Amin_DCD &lt;- min.agg.amu$NEOMYCIN_SULF_DCD +  min.agg.amu$STREPTOMYCIN_SULF_DCD + min.agg.amu$DIHYDROSTREPTOMYCIN_DCD
+min.agg.amu$Amin_DDD &lt;- min.agg.amu$NEOMYCIN_SULF_DDD +  min.agg.amu$STREPTOMYCIN_SULF_DDD + min.agg.amu$DIHYDROSTREPTOMYCIN_DDD
+
+#Sulfonamides
+min.agg.amu$Sulf_DCD &lt;- min.agg.amu$SULFANILAMIDE_DCD + min.agg.amu$SULFATHIAZOLE_DCD + min.agg.amu$SULFAMETHAZINE_DCD + min.agg.amu$SULFAMERAZINE_DCD + min.agg.amu$SULFAGUANIDINE_DCD + min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD
+min.agg.amu$Sulf_DDD &lt;- min.agg.amu$SULFANILAMIDE_DDD + min.agg.amu$SULFATHIAZOLE_DDD + min.agg.amu$SULFAMETHAZINE_DDD + min.agg.amu$SULFAMERAZINE_DDD + min.agg.amu$SULFAGUANIDINE_DDD + min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD
+
+#Lincosamides
+min.agg.amu$Linco_DCD &lt;- min.agg.amu$PIRLIMYCIN_DCD
+min.agg.amu$Linco_DDD &lt;- min.agg.amu$PIRLIMYCIN_DDD
+
+#Polymyxins
+min.agg.amu$Poly_DCD &lt;- min.agg.amu$POLYMYXINB_SULF_DCD
+min.agg.amu$Poly_DDD &lt;- min.agg.amu$POLYMYXINB_SULF_DDD
+
+#TMS
+min.agg.amu$TMS_DCD &lt;- min.agg.amu$TRIM_SULFADOXINE_DCD
+min.agg.amu$TMS_DDD &lt;- min.agg.amu$TRIM_SULFADOXINE_DDD
+
 
 #calculer le nombre total d&#39;animaux
-min.agg.amu$denom &lt;- min.agg.amu$Nb_veau+min.agg.amu$Nb_taure+min.agg.amu$Nb_vch1+min.agg.amu$Nb_vch2+min.agg.amu$Nb_tarie+min.agg.amu$Nb_taureau
+min.agg.amu$denom &lt;- min.agg.amu$Nb_vch1+min.agg.amu$Nb_vch2+min.agg.amu$Nb_tarie
 
 #Diviser les valeurs absolues par le nombre d&#39;animaux
 #DCD
@@ -2137,11 +2297,29 @@ min.agg.amu$TETRACYCLINE_DCD &lt;- min.agg.amu$TETRACYCLINE_DCD/min.agg.amu$deno
 min.agg.amu$NEOMYCIN_SULF_DCD &lt;- min.agg.amu$NEOMYCIN_SULF_DCD/min.agg.amu$denom*100
 min.agg.amu$SULFAMERAZINE_DCD &lt;- min.agg.amu$SULFAMERAZINE_DCD/min.agg.amu$denom*100
 min.agg.amu$SULFAGUANIDINE_DCD &lt;- min.agg.amu$SULFAGUANIDINE_DCD/min.agg.amu$denom*100
-min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD &lt;- min.agg.amu$SUCCINYLSULFATHIAZOLE_DCD/min.agg.amu$denom*100
+min.agg.amu$FLORFENICOL_DCD &lt;- min.agg.amu$FLORFENICOL_DCD/min.agg.amu$denom*100
+
 min.agg.amu$total_DCD &lt;- min.agg.amu$total_DCD/min.agg.amu$denom*100
 min.agg.amu$cat1_DCD &lt;- min.agg.amu$cat1_DCD/min.agg.amu$denom*100
 min.agg.amu$cat2_DCD &lt;- min.agg.amu$cat2_DCD/min.agg.amu$denom*100
 min.agg.amu$cat3_DCD &lt;- min.agg.amu$cat3_DCD/min.agg.amu$denom*100
+
+min.agg.amu$PenES_DCD &lt;- min.agg.amu$PenES_DCD/min.agg.amu$denom*100
+min.agg.amu$BLResPen_DCD &lt;- min.agg.amu$BLResPen_DCD/min.agg.amu$denom*100
+min.agg.amu$BLSensPen_DCD &lt;- min.agg.amu$BLSensPen_DCD/min.agg.amu$denom*100
+min.agg.amu$FGCeph_DCD &lt;- min.agg.amu$FGCeph_DCD/min.agg.amu$denom*100
+min.agg.amu$TGCeph_DCD &lt;- min.agg.amu$TGCeph_DCD/min.agg.amu$denom*100
+min.agg.amu$Fluoro_DCD &lt;- min.agg.amu$Fluoro_DCD/min.agg.amu$denom*100
+min.agg.amu$Amph_DCD &lt;- min.agg.amu$Amph_DCD/min.agg.amu$denom*100
+min.agg.amu$Macr_DCD &lt;- min.agg.amu$Macr_DCD/min.agg.amu$denom*100
+min.agg.amu$Tetr_DCD &lt;- min.agg.amu$Tetr_DCD/min.agg.amu$denom*100
+min.agg.amu$Amin_DCD &lt;- min.agg.amu$Amin_DCD/min.agg.amu$denom*100
+min.agg.amu$Sulf_DCD &lt;- min.agg.amu$Sulf_DCD/min.agg.amu$denom*100
+min.agg.amu$Linco_DCD &lt;- min.agg.amu$Linco_DCD/min.agg.amu$denom*100
+min.agg.amu$Poly_DCD &lt;- min.agg.amu$Poly_DCD/min.agg.amu$denom*100
+min.agg.amu$TMS_DCD &lt;- min.agg.amu$TMS_DCD/min.agg.amu$denom*100
+
+
 
 #DDD
 min.agg.amu$TYLOSIN_DDD &lt;- min.agg.amu$TYLOSIN_DDD/min.agg.amu$denom*100
@@ -2172,14 +2350,33 @@ min.agg.amu$TETRACYCLINE_DDD &lt;- min.agg.amu$TETRACYCLINE_DDD/min.agg.amu$deno
 min.agg.amu$NEOMYCIN_SULF_DDD &lt;- min.agg.amu$NEOMYCIN_SULF_DDD/min.agg.amu$denom*100
 min.agg.amu$SULFAMERAZINE_DDD &lt;- min.agg.amu$SULFAMERAZINE_DDD/min.agg.amu$denom*100
 min.agg.amu$SULFAGUANIDINE_DDD &lt;- min.agg.amu$SULFAGUANIDINE_DDD/min.agg.amu$denom*100
-min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD &lt;- min.agg.amu$SUCCINYLSULFATHIAZOLE_DDD/min.agg.amu$denom*100
+min.agg.amu$FLORFENICOL_DDD &lt;- min.agg.amu$FLORFENICOL_DDD/min.agg.amu$denom*100
+
 min.agg.amu$total_DDD &lt;- min.agg.amu$total_DDD/min.agg.amu$denom*100
 min.agg.amu$cat1_DDD &lt;- min.agg.amu$cat1_DDD/min.agg.amu$denom*100
 min.agg.amu$cat2_DDD &lt;- min.agg.amu$cat2_DDD/min.agg.amu$denom*100
 min.agg.amu$cat3_DDD &lt;- min.agg.amu$cat3_DDD/min.agg.amu$denom*100
 
+min.agg.amu$PenES_DDD &lt;- min.agg.amu$PenES_DDD/min.agg.amu$denom*100
+min.agg.amu$BLResPen_DDD &lt;- min.agg.amu$BLResPen_DDD/min.agg.amu$denom*100
+min.agg.amu$BLSensPen_DDD &lt;- min.agg.amu$BLSensPen_DDD/min.agg.amu$denom*100
+min.agg.amu$FGCeph_DDD &lt;- min.agg.amu$FGCeph_DDD/min.agg.amu$denom*100
+min.agg.amu$TGCeph_DDD &lt;- min.agg.amu$TGCeph_DDD/min.agg.amu$denom*100
+min.agg.amu$Fluoro_DDD &lt;- min.agg.amu$Fluoro_DDD/min.agg.amu$denom*100
+min.agg.amu$Amph_DDD &lt;- min.agg.amu$Amph_DDD/min.agg.amu$denom*100
+min.agg.amu$Macr_DDD &lt;- min.agg.amu$Macr_DDD/min.agg.amu$denom*100
+min.agg.amu$Tetr_DDD &lt;- min.agg.amu$Tetr_DDD/min.agg.amu$denom*100
+min.agg.amu$Amin_DDD &lt;- min.agg.amu$Amin_DDD/min.agg.amu$denom*100
+min.agg.amu$Sulf_DDD &lt;- min.agg.amu$Sulf_DDD/min.agg.amu$denom*100
+min.agg.amu$Linco_DDD &lt;- min.agg.amu$Linco_DDD/min.agg.amu$denom*100
+min.agg.amu$Poly_DDD &lt;- min.agg.amu$Poly_DDD/min.agg.amu$denom*100
+min.agg.amu$TMS_DDD &lt;- min.agg.amu$TMS_DDD/min.agg.amu$denom*100
 
-write.csv(min.agg.amu,&quot;data/min.csv&quot;, row.names = FALSE)</code></pre>
+
+
+min.agg.amu2 &lt;- min.agg.amu[ -c(63:71, 108) ]
+
+write.csv(min.agg.amu2,&quot;data/min.csv&quot;, row.names = FALSE)</code></pre>
 </div>
 </div>
 </div>

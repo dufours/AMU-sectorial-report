@@ -1,0 +1,989 @@
+---
+title: "Figures for Shiny"
+author: "Simon Dufour"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Figures AMU rapport sectoriel bovins laitiers 
+Créer les figures interactives demande aussi un certain temps de logiciel. Nous allons donc les créer et les sauvegarder dans un format interactif (.rds) et nous pourrons ainsi appeller les figures directement dans l'interface Shiny sans avoir à les créer dans l'interface. Ce sera plus rapide comme rendu ET l'interface Shiny sera simplifiée.
+```{r}
+#Open the datasets
+
+max <- read.csv("data/max.csv")
+min <- read.csv("data/min.csv")
+
+min$Year <- factor(min$Year)
+max$Year <- factor(max$Year)
+max$Route <- factor(max$Route)
+
+#Rename Route
+max$Route <- ifelse(max$Route=="IM_L", "IMM-Lactation",
+                    ifelse(max$Route=="IM_T", "IMM-Tarissement",
+                           ifelse(max$Route=="INJ", "Injectable", 
+                                  ifelse(max$Route=="IU", "IU", 
+                                         ifelse(max$Route=="ORAL", "PO", "Topique")))))
+
+```
+
+## Figure utilisation globale par année
+### AMU totale
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques en DCD."}
+library(dplyr)
+library(plotly)
+
+fig <- min %>%
+  plot_ly(
+    y = ~total_DCD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation totale', 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 900),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Total AMU DCD.rds")
+
+e <- readRDS("Figures/Total AMU DCD.rds")
+e
+
+```
+
+
+
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques en DDD."}
+
+fig <- min %>%
+  plot_ly(
+    y = ~total_DDD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation totale', 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 900),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Total AMU DDD.rds")
+
+e <- readRDS("Figures/Total AMU DDD.rds")
+e
+
+```
+
+### AMU catégorie I
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie I en DCD."}
+fig <- min %>%
+  plot_ly(
+    y = ~cat1_DCD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation des antibiotiques de catégorie I', 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 500),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Cat1 AMU DCD.rds")
+
+e <- readRDS("Figures/Cat1 AMU DCD.rds")
+e
+
+```
+
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 1 en DDD."}
+fig <- min %>%
+  plot_ly(
+    y = ~cat1_DDD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation des antibiotiques de catégorie I', 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 700),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Cat1 AMU DDD.rds")
+
+e <- readRDS("Figures/Cat1 AMU DDD.rds")
+e
+
+```
+
+
+
+### AMU catégorie II
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie II en DCD."}
+fig <- min %>%
+  plot_ly(
+    y = ~cat2_DCD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation des antibiotiques de catégorie II', 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 500),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Cat2 AMU DCD.rds")
+
+e <- readRDS("Figures/Cat2 AMU DCD.rds")
+e
+
+```
+
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie II en DDD."}
+fig <- min %>%
+  plot_ly(
+    y = ~cat2_DDD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation des antibiotiques de catégorie II', 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 500),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Cat2 AMU DDD.rds")
+
+e <- readRDS("Figures/Cat2 AMU DDD.rds")
+e
+
+```
+
+### AMU catégorie III
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie III en DCD."}
+fig <- min %>%
+  plot_ly(
+    y = ~cat3_DCD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation des antibiotiques de catégorie III', 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 500),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Cat3 AMU DCD.rds")
+
+e <- readRDS("Figures/Cat3 AMU DCD.rds")
+e
+
+``` 
+
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie III en DDD."}
+fig <- min %>%
+  plot_ly(
+    y = ~cat3_DDD,
+    split = ~Year,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ),
+    spanmode="hard"
+  ) 
+
+fig <- fig %>%
+  layout(title = 'Utilisation des antibiotiques de catégorie III', 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.0f',  
+                      #range = list(0, 500),
+                      zeroline = TRUE), 
+         showlegend = FALSE
+         
+  )
+plotly_build()
+saveRDS(fig, "Figures/Cat3 AMU DDD.rds")
+
+e <- readRDS("Figures/Cat3 AMU DDD.rds")
+e
+
+```
+
+## Figure AMU par voie d'administration
+### AMU totale
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques par voie d'administration en DCD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~total_DCD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation totale par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 530)), 
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Total AMU Route DCD.rds")
+
+d <- readRDS("Figures/Total AMU Route DCD.rds")
+d
+```
+
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques par voie d'administration en DDD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~total_DDD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation totale par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 1500)), 
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Total AMU Route DDD.rds")
+
+d <- readRDS("Figures/Total AMU Route DDD.rds")
+d
+```
+
+### AMU catégorie I
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 1 par voie d'administration en DCD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~cat1_DCD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation des antibiotiques de catégorie I par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 200)),
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Cat1 AMU Route DCD.rds")
+
+d <- readRDS("Figures/Cat1 AMU Route DCD.rds")
+d
+```
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 1 par voie d'administration en DDD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~cat1_DDD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation des antibiotiques de catégorie I par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 350)),
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Cat1 AMU Route DDD.rds")
+
+d <- readRDS("Figures/Cat1 AMU Route DDD.rds")
+d
+```
+
+### AMU catégorie II
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 2 par voie d'administration en DCD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~cat2_DCD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation des antibiotiques de catégorie II par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 450)),
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Cat2 AMU Route DCD.rds")
+
+d <- readRDS("Figures/Cat2 AMU Route DCD.rds")
+d
+```
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 2 par voie d'administration en DDD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~cat2_DDD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation des antibiotiques de catégorie II par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 1500)),
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Cat2 AMU Route DDD.rds")
+
+d <- readRDS("Figures/Cat2 AMU Route DDD.rds")
+d
+```
+
+### AMU catégorie 3
+#### DCD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 3 par voie d'administration en DCD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~cat3_DCD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation des antibiotiques de catégorie III par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 250)),
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Cat3 AMU Route DCD.rds")
+
+d <- readRDS("Figures/Cat3 AMU Route DCD.rds")
+d
+```
+#### DDD
+```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 3 par voie d'administration en DDD."}
+fig <- plot_ly(max, 
+                         x = ~Route, 
+                         y = ~cat3_DDD, 
+                         color = ~Year, 
+                         type = "box",
+                         marker=list(color="white"))%>% 
+  layout(boxmode="group",
+         title = "Utilisation des antibiotiques de catégorie III par voie d'administration", 
+         yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                      hoverformat = '.1f',  
+                      range = list(0, 1300)),
+         xaxis = list(title = "Voie d'administration"),
+         legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h"))%>%
+
+plotly_build()
+saveRDS(fig, "Figures/Cat3 AMU Route DDD.rds")
+
+d <- readRDS("Figures/Cat3 AMU Route DDD.rds")
+d
+```
+
+## AMU par famille d'antibiotique
+### Catégorie 1
+#### DCD
+```{r}
+#I don't know why but "Year" is always showing up in the bottom part of the figure, even with xaxis=list(title="Année")
+
+min$Année <- factor(min$Year)
+
+#Categorie 1
+library(plotly)
+fig <- plot_ly(min,
+               x = ~Année,
+               y = ~TGCeph_DCD, 
+               type = 'box', 
+               name="Céphalosporines de 3e génération",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Fluoro_DCD,
+                         type = 'box', 
+                         name="Fluoroquinolones",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Poly_DCD,
+                         type = 'box', 
+                         name="Polymyxines",
+                         marker=list(color="white")
+                         )
+
+fig<- fig %>%
+              layout(boxmode="group",
+                     title = "Utilisation des antibiotiques de catégorie I par famille d'antibiotiques", 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.1f',  
+                     range = list(0, 170)),
+                     legend= list(x = 0.1, 
+                      y = 0.95, 
+                      orientation="h")
+         )%>%
+
+plotly_build()
+saveRDS(fig, "Figures/cat1_fam_DCD.rds")
+
+d <- readRDS("Figures/cat1_fam_DCD.rds")
+d
+
+
+```
+
+#### DDD
+```{r}
+#Categorie 1
+library(plotly)
+fig <- plot_ly(min,
+               x = ~Année,
+               y = ~TGCeph_DDD, 
+               type = 'box', 
+               name="Céphalosporines de 3e génération",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Fluoro_DDD,
+                         type = 'box', 
+                         name="Fluoroquinolones",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Poly_DDD,
+                         type = 'box', 
+                         name="Polymyxines",
+                         marker=list(color="white")
+                         )
+
+fig<- fig %>%
+              layout(boxmode="group",
+                     title = "Utilisation des antibiotiques de catégorie I par famille d'antibiotiques", 
+                     yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                     hoverformat = '.1f',  
+                     range = list(0, 350)),
+                     legend= list(x = 0.1, 
+                      y = 0.95, 
+                      orientation="h")
+         )%>%
+
+plotly_build()
+saveRDS(fig, "Figures/cat1_fam_DDD.rds")
+
+d <- readRDS("Figures/cat1_fam_DDD.rds")
+d
+
+
+```
+
+
+
+### Catégorie II
+#### DCD
+```{r}
+
+#Categorie 2
+
+fig <- plot_ly(min,
+               x = ~Année,
+               y = ~BLSensPen_DCD, 
+               type = 'box', 
+               name="Pen. sens. aux beta-lact.",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Amin_DCD,
+                         type = 'box', 
+                         name="Aminoglycosides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~FGCeph_DCD,
+                         type = 'box', 
+                         name="1ère gén. céphapirines",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Linco_DCD,
+                         type = 'box', 
+                         name="Lincosamides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~BLResPen_DCD,
+                         type = 'box', 
+                         name="Pen. résist. aux beta-lact.",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~TMS_DCD,
+                         type = 'box', 
+                         name="Trimethoprim-sulfonamides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Macr_DCD,
+                         type = 'box', 
+                         name="Macrolides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~PenES_DCD,
+                         type = 'box', 
+                         name="Pen. à spectre étendu",
+                         marker=list(color="white")
+                         )
+
+fig<- fig %>%
+              layout(boxmode="group",
+                     title = "Utilisation des antibiotiques de catégorie II par famille d'antibiotiques", 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.1f',  
+                     range = list(0, 275)),
+                     legend= list(x = 100, 
+                      y = 0.95, 
+                      orientation="h")
+         )%>%
+
+plotly_build()
+saveRDS(fig, "Figures/cat2_fam_DCD.rds")
+
+d <- readRDS("Figures/cat2_fam_DCD.rds")
+d
+
+```
+
+#### DDD
+```{r}
+#Categorie 2
+
+fig <- plot_ly(min,
+               x = ~Année,
+               y = ~BLSensPen_DDD, 
+               type = 'box', 
+               name="Pen. sens. aux beta-lact.",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Amin_DDD,
+                         type = 'box', 
+                         name="Aminoglycosides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~FGCeph_DDD,
+                         type = 'box', 
+                         name="1ère gén. céphapirines",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Linco_DDD,
+                         type = 'box', 
+                         name="Lincosamides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~BLResPen_DDD,
+                         type = 'box', 
+                         name="Pen. résist. aux beta-lact.",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~TMS_DDD,
+                         type = 'box', 
+                         name="Trimethoprim-sulfonamides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Macr_DDD,
+                         type = 'box', 
+                         name="Macrolides",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~PenES_DDD,
+                         type = 'box', 
+                         name="Pen. à spectre étendu",
+                         marker=list(color="white")
+                         )
+
+fig<- fig %>%
+              layout(boxmode="group",
+                     title = "Utilisation des antibiotiques de catégorie II par famille d'antibiotiques", 
+                     yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                     hoverformat = '.1f',  
+                     range = list(0, 1300)),
+                     legend= list(x = 100, 
+                      y = 0.95, 
+                      orientation="h")
+         )%>%
+
+plotly_build()
+saveRDS(fig, "Figures/cat2_fam_DDD.rds")
+
+d <- readRDS("Figures/cat2_fam_DDD.rds")
+d
+```
+
+
+### Catégorie III
+#### DCD
+```{r}
+#Categorie 3
+fig <- plot_ly(min,
+               x = ~Année,
+               y = ~Tetr_DCD, 
+               name = 'Tétracyclines',
+               type = 'box', 
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Sulf_DCD,
+                         name="Sulfonamides",
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Amph_DCD, 
+                         name = 'Amphénicols',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+
+
+fig<- fig %>%
+              layout(boxmode="group",
+                     title = "Utilisation des antibiotiques de catégorie III par famille d'antibiotiques", 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.1f',  
+                     range = list(0, 100)) ,
+                     legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h")
+         )%>%
+
+plotly_build()
+saveRDS(fig, "Figures/cat3_fam_DCD.rds")
+
+d <- readRDS("Figures/cat3_fam_DCD.rds")
+d
+
+```
+
+#### DDD
+```{r}
+#Categorie 3
+fig <- plot_ly(min,
+               x = ~Année,
+               y = ~Tetr_DDD, 
+               name = 'Tétracyclines',
+               type = 'box', 
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Sulf_DDD,
+                         name="Sulfonamides",
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Année,
+                         y = ~Amph_DDD, 
+                         name = 'Amphénicols',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+
+
+fig<- fig %>%
+              layout(boxmode="group",
+                     title = "Utilisation des antibiotiques de catégorie III par famille d'antibiotiques", 
+                     yaxis = list(title = "Taux d'utilisation (Dose-jour/100 animaux-année)",
+                     hoverformat = '.1f',  
+                     range = list(0, 300)),
+                     legend= list(x = 0.2, 
+                      y = 0.95, 
+                      orientation="h")
+         )%>%
+
+plotly_build()
+saveRDS(fig, "Figures/cat3_fam_DDD.rds")
+
+d <- readRDS("Figures/cat3_fam_DDD.rds")
+d
+
+```
+
+## Write table with summary stats
+Nous allons calculer les médianes qui pourraient être "appellées" dans le texte de l'interface. Ça évitera de les modifier à la pièce. Au besoin, on pourrait ajouter d'autres mesures tels Q1, Q3, moyenne, etc que l'on voudrait mentionner dans le texte.  
+  
+```{r}
+#Write table with all medians summary stats
+
+sum_stats <- min %>% 
+  group_by(Year) %>% 
+  summarize(med_total_DCD=round(quantile(total_DCD, 0.50)),
+            med_total_DDD=round(quantile(total_DDD, 0.50)),
+            
+            med_cat1_DCD=round(quantile(cat1_DCD, 0.50)),
+            med_cat1_DDD=round(quantile(cat1_DDD, 0.50)),
+            med_cat2_DCD=round(quantile(cat2_DCD, 0.50)),
+            med_cat2_DDD=round(quantile(cat2_DDD, 0.50)),
+            med_cat3_DCD=round(quantile(cat3_DCD, 0.50)),
+            med_cat3_DDD=round(quantile(cat3_DDD, 0.50)),
+            
+            med_PenES_DCD=round(quantile(PenES_DCD, 0.50)),
+            med_PenES_DDD=round(quantile(PenES_DDD, 0.50)),  
+            
+            med_BLResPen_DCD=round(quantile(BLResPen_DCD, 0.50)),
+            med_BLResPen_DDD=round(quantile(BLResPen_DDD, 0.50)), 
+            
+            med_BLSensPen_DCD=round(quantile(BLSensPen_DCD, 0.50)),
+            med_BLSensPen_DDD=round(quantile(BLSensPen_DDD, 0.50)),
+            
+            med_FGCeph_DCD=round(quantile(FGCeph_DCD, 0.50)),
+            med_FGCeph_DDD=round(quantile(FGCeph_DDD, 0.50)), 
+            
+            med_TGCeph_DCD=round(quantile(TGCeph_DCD, 0.50)),
+            med_TGCeph_DDD=round(quantile(TGCeph_DDD, 0.50)),
+            
+            med_Fluoro_DCD=round(quantile(Fluoro_DCD, 0.50)),
+            med_Fluoro_DDD=round(quantile(Fluoro_DDD, 0.50)), 
+            
+            med_Amph_DCD=round(quantile(Amph_DCD, 0.50)),
+            med_Amph_DDD=round(quantile(Amph_DDD, 0.50)),  
+            
+            med_Macr_DCD=round(quantile(Macr_DCD, 0.50)),
+            med_Macr_DDD=round(quantile(Macr_DDD, 0.50)),  
+            
+            med_Tetr_DCD=round(quantile(Tetr_DCD, 0.50)),
+            med_Tetr_DDD=round(quantile(Tetr_DDD, 0.50)), 
+            
+            med_Amin_DCD=round(quantile(Amin_DCD, 0.50)),
+            med_Amin_DDD=round(quantile(Amin_DDD, 0.50)),  
+            
+            med_Sulf_DCD=round(quantile(Sulf_DCD, 0.50)),
+            med_Sulf_DDD=round(quantile(Sulf_DDD, 0.50)), 
+            
+            med_Linco_DCD=round(quantile(Linco_DCD, 0.50)),
+            med_Linco_DDD=round(quantile(Linco_DDD, 0.50)), 
+            
+            med_Poly_DCD=round(quantile(Poly_DCD, 0.50)),
+            med_Poly_DDD=round(quantile(Poly_DDD, 0.50)), 
+            
+            med_TMS_DCD=round(quantile(TMS_DCD, 0.50)),
+            med_TMS_DDD=round(quantile(TMS_DDD, 0.50))
+            )
+write.csv(sum_stats,"data/stats.csv", row.names = FALSE)
+
+sum_stats_route <- max %>% 
+  group_by(Route, Year) %>% 
+  summarize(med_total_DCD=round(quantile(total_DCD, 0.50)),
+            med_total_DDD=round(quantile(total_DDD, 0.50)),
+           
+            med_cat1_DCD=round(quantile(cat1_DCD, 0.50)),
+            med_cat1_DDD=round(quantile(cat1_DDD, 0.50)),
+            med_cat2_DCD=round(quantile(cat2_DCD, 0.50)),
+            med_cat2_DDD=round(quantile(cat2_DDD, 0.50)),
+            med_cat3_DCD=round(quantile(cat3_DCD, 0.50)),
+            med_cat3_DDD=round(quantile(cat3_DDD, 0.50)),
+            
+            med_PenES_DCD=round(quantile(PenES_DCD, 0.50)),
+            med_PenES_DDD=round(quantile(PenES_DDD, 0.50)),  
+            
+            med_BLResPen_DCD=round(quantile(BLResPen_DCD, 0.50)),
+            med_BLResPen_DDD=round(quantile(BLResPen_DDD, 0.50)), 
+            
+            med_BLSensPen_DCD=round(quantile(BLSensPen_DCD, 0.50)),
+            med_BLSensPen_DDD=round(quantile(BLSensPen_DDD, 0.50)),
+            
+            med_FGCeph_DCD=round(quantile(FGCeph_DCD, 0.50)),
+            med_FGCeph_DDD=round(quantile(FGCeph_DDD, 0.50)), 
+            
+            med_TGCeph_DCD=round(quantile(TGCeph_DCD, 0.50)),
+            med_TGCeph_DDD=round(quantile(TGCeph_DDD, 0.50)),
+            
+            med_Fluoro_DCD=round(quantile(Fluoro_DCD, 0.50)),
+            med_Fluoro_DDD=round(quantile(Fluoro_DDD, 0.50)), 
+            
+            med_Amph_DCD=round(quantile(Amph_DCD, 0.50)),
+            med_Amph_DDD=round(quantile(Amph_DDD, 0.50)),  
+            
+            med_Macr_DCD=round(quantile(Macr_DCD, 0.50)),
+            med_Macr_DDD=round(quantile(Macr_DDD, 0.50)),  
+            
+            med_Tetr_DCD=round(quantile(Tetr_DCD, 0.50)),
+            med_Tetr_DDD=round(quantile(Tetr_DDD, 0.50)), 
+            
+            med_Amin_DCD=round(quantile(Amin_DCD, 0.50)),
+            med_Amin_DDD=round(quantile(Amin_DDD, 0.50)),  
+            
+            med_Sulf_DCD=round(quantile(Sulf_DCD, 0.50)),
+            med_Sulf_DDD=round(quantile(Sulf_DDD, 0.50)), 
+            
+            med_Linco_DCD=round(quantile(Linco_DCD, 0.50)),
+            med_Linco_DDD=round(quantile(Linco_DDD, 0.50)), 
+            
+            med_Poly_DCD=round(quantile(Poly_DCD, 0.50)),
+            med_Poly_DDD=round(quantile(Poly_DDD, 0.50)), 
+            
+            med_TMS_DCD=round(quantile(TMS_DCD, 0.50)),
+            med_TMS_DDD=round(quantile(TMS_DDD, 0.50))
+            )
+write.csv(sum_stats_route,"data/stats_route.csv", row.names = FALSE)
+
+
+
+  
+```

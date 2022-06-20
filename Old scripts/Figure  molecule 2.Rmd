@@ -1,0 +1,310 @@
+---
+title: "Exemples de figures"
+author: "Simon Dufour"
+date: "`r Sys.Date()`"
+output: 
+  html_document: 
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Figures par molécule
+J'ai trouvé ces figures qui permettraient de présenter plus que juste la médiane par molécule...
+```{r}
+#Open the datasets
+
+max <- read.csv("data/max.csv")
+min <- read.csv("data/min.csv")
+mol.med <- read.csv("data/mol.csv")
+
+min$Year <- factor(min$Year)
+max$Year <- factor(max$Year)
+max$Route <- factor(max$Route)
+mol.med$Year <- factor(mol.med$Year)
+
+#Rename Route
+max$Route <- ifelse(max$Route=="IM_L", "IMM-Lactation",
+                    ifelse(max$Route=="IM_T", "IMM-Tarissement",
+                           ifelse(max$Route=="INJ", "Injectable", 
+                                  ifelse(max$Route=="IU", "IU", 
+                                         ifelse(max$Route=="ORAL", "PO", "Topique")))))
+
+```
+
+```{r}
+#Categorie 1
+library(plotly)
+fig <- plot_ly(min,
+               x = ~Year,
+               y = ~POLYMYXINB_SULF_DCD, 
+               type = 'box', 
+               name="Polymixine B",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~CEFTIOFUR_DCD,
+                         type = 'box', 
+                         name="Ceftiofur",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~DANOFLOXACIN_DCD,
+                         type = 'box', 
+                         name="Danofloxacin",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~ENROFLOXACIN_DCD,
+                         type = 'box', 
+                         name="Enrofloxacin",
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~MARBOFLOXACIN_DCD,
+                         type = 'box', 
+                         name="Marbofloxacin",
+                         marker=list(color="white")
+                         )
+
+
+ fig.cat1.mol <- fig %>%
+              layout(boxmode="group",
+                     title = 'Utilisation des antibiotiques de catégorie I par molécule', 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.0f',  
+                     range = list(0, 90)) #Adjust the y axis range
+         )
+
+fig.cat1.mol
+
+
+```
+
+```{r}
+#Categorie 2
+fig <- plot_ly(min,
+               x = ~Year,
+               y = ~GAMITROMYCIN_DCD, 
+               type = 'box', 
+               name="Gamitromycine",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~TILDIPIROSIN_DCD, 
+                         name = 'Tildipirosine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~TILMICOSIN_DCD, 
+                         name = 'Tilmicosine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~TULATHROMYCIN_DCD, 
+                         name = 'Tulathromycine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~TYLOSIN_DCD, 
+                         name = 'Tylosine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~AMPICILLIN_DCD, 
+                         name="Ampicilline",
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~NEOMYCIN_SULF_DCD, 
+                         name = 'Neomycine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~STREPTOMYCIN_SULF_DCD, 
+                         name = 'Streptomycine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+
+
+ fig.cat2b.mol <- fig %>%
+              layout(boxmode="group",
+                     title = 'Utilisation des antibiotiques de catégorie II par molécule (partie 2/2)', 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.0f',  
+                     range = list(0, 4)) #Adjust the y axis range
+         )
+
+fig.cat2b.mol
+
+
+```
+
+
+```{r}
+#Categorie 2
+fig <- plot_ly(min,
+               x = ~Year,
+               y = ~DIHYDROSTREPTOMYCIN_DCD, 
+               name = 'Dihydrostreptomycine',
+               type="box",
+               marker=list(color="white")
+               )
+
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~CEFAPIRIN_DCD, 
+                         name = 'Céphapirine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~PIRLIMYCIN_DCD, 
+                         name = 'Pirlimycine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~CLOXACILLIN_DCD, 
+                         name = 'Cloxacilline',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~BENZYLPENICILLIN_B_DCD, 
+                         name = 'Benzylpenicilline B',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~BENZYLPENICILLIN_P_DCD, 
+                         name = 'Benzylpenicilline P',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~TRIM_SULFADOXINE_DCD, 
+                         name = 'Trimethoprim-sulfa',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+
+fig.cat2a.mol <- fig %>%
+              layout(boxmode="group",
+                     title = 'Utilisation des antibiotiques de catégorie II par molécule (partie 1/2)', 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.0f',  
+                     range = list(0, 160)) #Adjust the y axis range
+         )
+
+fig.cat2a.mol
+
+
+```
+
+```{r}
+#Categorie 3
+fig <- plot_ly(min,
+               x = ~Year,
+               y = ~CHLORTETRACYCLINE_DCD, 
+               type = 'box', 
+               name="Chlortetracycline",
+               marker=list(color="white")
+               )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~OXYTETRACYCLINE_DCD, 
+                         name = 'Oxytetracycline',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~TETRACYCLINE_DCD, 
+                         name = 'Tetracycline',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~SUCCINYLSULFATHIAZOLE_DCD, 
+                         name = 'Succinyl Sulfathiazole',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~SULFAGUANIDINE_DCD, 
+                         name = 'Sulfaguanidine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~SULFAMERAZINE_DCD, 
+                         name = 'Sulfamerazine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~SULFAMETHAZINE_DCD, 
+                         name = 'Sulfamethazine',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~SULFANILAMIDE_DCD, 
+                         name = 'Sulfanilamide',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+fig <- fig %>% add_trace(min,
+                         x = ~Year,
+                         y = ~SULFATHIAZOLE_DCD, 
+                         name = 'Sulfathiazole',
+                         type = 'box', 
+                         marker=list(color="white")
+                         )
+
+
+
+ fig.cat3.mol <- fig %>%
+              layout(boxmode="group",
+                     title = 'Utilisation des antibiotiques de catégorie III par molécule', 
+                     yaxis = list(title = "Taux d'utilisation (Traitement/100 animaux-année)",
+                     hoverformat = '.0f',  
+                     range = list(0, 20)) #Adjust the y axis range
+         )
+
+fig.cat3.mol
+
+
+```
