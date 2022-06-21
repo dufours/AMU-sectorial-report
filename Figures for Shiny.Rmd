@@ -13,7 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Figures AMU rapport sectoriel bovins laitiers 
-Créer les figures interactives demande aussi un certain temps de logiciel. Nous allons donc les créer et les sauvegarder dans un format interactif (.rds) et nous pourrons ainsi appeller les figures directement dans l'interface Shiny sans avoir à les créer dans l'interface. Ce sera plus rapide comme rendu ET l'interface Shiny sera simplifiée.
+Créer les figures interactives demande aussi un certain temps de logiciel. Nous allons donc les créer et les sauvegarder dans un format interactif (.rds) et nous pourrons ainsi appeller les figures directement dans l'interface Shiny sans avoir à les créer dans l'interface. Ce sera plus rapide comme rendu ET l'interface Shiny sera simplifiée.  
+  
+**Après avoir rouler ce script, le contenu html pour chaque figure, incluant le sous-fichier "lib" (avec les paramètres html) sont envoyés directement vers le fichier "www" de l'application Shiny.**  
+  
 ```{r}
 #Open the datasets
 
@@ -39,6 +42,7 @@ max$Route <- ifelse(max$Route=="IM_L", "IMM-Lactation",
 ```{r, fig.cap="Taux d'utilisation des antibiotiques en DCD."}
 library(dplyr)
 library(plotly)
+library(htmlwidgets)
 
 fig <- min %>%
   plot_ly(
@@ -63,11 +67,9 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Total AMU DCD.rds")
 
-e <- readRDS("Figures/Total AMU DCD.rds")
-e
+saveWidget(fig, "Rapport_sectoriel/www/Total AMU 1.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -99,11 +101,8 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Total AMU DDD.rds")
-
-e <- readRDS("Figures/Total AMU DDD.rds")
-e
+saveWidget(fig, "Rapport_sectoriel/www/Total AMU 2.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -133,11 +132,8 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Cat1 AMU DCD.rds")
-
-e <- readRDS("Figures/Cat1 AMU DCD.rds")
-e
+saveWidget(fig, "Rapport_sectoriel/www/Cat1 AMU 1.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -166,11 +162,8 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Cat1 AMU DDD.rds")
-
-e <- readRDS("Figures/Cat1 AMU DDD.rds")
-e
+saveWidget(fig, "Rapport_sectoriel/www/Cat1 AMU 2.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -202,11 +195,8 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Cat2 AMU DCD.rds")
-
-e <- readRDS("Figures/Cat2 AMU DCD.rds")
-e
+saveWidget(fig, "Rapport_sectoriel/www/Cat2 AMU 1.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -235,11 +225,9 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Cat2 AMU DDD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat2 AMU 2.html", selfcontained = F, libdir = "lib")
+fig
 
-e <- readRDS("Figures/Cat2 AMU DDD.rds")
-e
 
 ```
 
@@ -269,11 +257,8 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Cat3 AMU DCD.rds")
-
-e <- readRDS("Figures/Cat3 AMU DCD.rds")
-e
+saveWidget(fig, "Rapport_sectoriel/www/Cat3 AMU 1.html", selfcontained = F, libdir = "lib")
+fig
 
 ``` 
 
@@ -302,11 +287,9 @@ fig <- fig %>%
          showlegend = FALSE
          
   )
-plotly_build()
-saveRDS(fig, "Figures/Cat3 AMU DDD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat3 AMU 2.html", selfcontained = F, libdir = "lib")
+fig
 
-e <- readRDS("Figures/Cat3 AMU DDD.rds")
-e
 
 ```
 
@@ -328,13 +311,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Total AMU Route DCD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Total AMU Route 1.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Total AMU Route DCD.rds")
-d
 ```
 
 #### DDD
@@ -353,13 +334,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Total AMU Route DDD.rds")
+  saveWidget(fig, "Rapport_sectoriel/www/Total AMU Route 2.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Total AMU Route DDD.rds")
-d
 ```
 
 ### AMU catégorie I
@@ -379,13 +358,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Cat1 AMU Route DCD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat1 AMU Route 1.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Cat1 AMU Route DCD.rds")
-d
 ```
 #### DDD
 ```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 1 par voie d'administration en DDD."}
@@ -403,13 +380,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Cat1 AMU Route DDD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat1 AMU Route 2.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Cat1 AMU Route DDD.rds")
-d
 ```
 
 ### AMU catégorie II
@@ -429,13 +404,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Cat2 AMU Route DCD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat2 AMU Route 1.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Cat2 AMU Route DCD.rds")
-d
 ```
 #### DDD
 ```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 2 par voie d'administration en DDD."}
@@ -453,13 +426,10 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
+saveWidget(fig, "Rapport_sectoriel/www/Cat2 AMU Route 2.html", selfcontained = F, libdir = "lib")
+fig
 
-plotly_build()
-saveRDS(fig, "Figures/Cat2 AMU Route DDD.rds")
-
-d <- readRDS("Figures/Cat2 AMU Route DDD.rds")
-d
 ```
 
 ### AMU catégorie 3
@@ -479,13 +449,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Cat3 AMU Route DCD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat3 AMU Route 1.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Cat3 AMU Route DCD.rds")
-d
 ```
 #### DDD
 ```{r, fig.cap="Taux d'utilisation des antibiotiques de catégorie 3 par voie d'administration en DDD."}
@@ -503,13 +471,11 @@ fig <- plot_ly(max,
          xaxis = list(title = "Voie d'administration"),
          legend= list(x = 0.2, 
                       y = 0.95, 
-                      orientation="h"))%>%
+                      orientation="h"))
 
-plotly_build()
-saveRDS(fig, "Figures/Cat3 AMU Route DDD.rds")
+saveWidget(fig, "Rapport_sectoriel/www/Cat3 AMU Route 2.html", selfcontained = F, libdir = "lib")
+fig
 
-d <- readRDS("Figures/Cat3 AMU Route DDD.rds")
-d
 ```
 
 ## AMU par famille d'antibiotique
@@ -553,14 +519,10 @@ fig<- fig %>%
                      legend= list(x = 0.1, 
                       y = 0.95, 
                       orientation="h")
-         )%>%
+         )
 
-plotly_build()
-saveRDS(fig, "Figures/cat1_fam_DCD.rds")
-
-d <- readRDS("Figures/cat1_fam_DCD.rds")
-d
-
+saveWidget(fig, "Rapport_sectoriel/www/cat1_fam_1.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -599,13 +561,9 @@ fig<- fig %>%
                      legend= list(x = 0.1, 
                       y = 0.95, 
                       orientation="h")
-         )%>%
-
-plotly_build()
-saveRDS(fig, "Figures/cat1_fam_DDD.rds")
-
-d <- readRDS("Figures/cat1_fam_DDD.rds")
-d
+         )
+saveWidget(fig, "Rapport_sectoriel/www/cat1_fam_2.html", selfcontained = F, libdir = "lib")
+fig
 
 
 ```
@@ -684,13 +642,9 @@ fig<- fig %>%
                      legend= list(x = 100, 
                       y = 0.95, 
                       orientation="h")
-         )%>%
-
-plotly_build()
-saveRDS(fig, "Figures/cat2_fam_DCD.rds")
-
-d <- readRDS("Figures/cat2_fam_DCD.rds")
-d
+         )
+saveWidget(fig, "Rapport_sectoriel/www/cat2_fam_1.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -764,13 +718,10 @@ fig<- fig %>%
                      legend= list(x = 100, 
                       y = 0.95, 
                       orientation="h")
-         )%>%
+         )
+saveWidget(fig, "Rapport_sectoriel/www/cat2_fam_2.html", selfcontained = F, libdir = "lib")
+fig
 
-plotly_build()
-saveRDS(fig, "Figures/cat2_fam_DDD.rds")
-
-d <- readRDS("Figures/cat2_fam_DDD.rds")
-d
 ```
 
 
@@ -810,13 +761,9 @@ fig<- fig %>%
                      legend= list(x = 0.2, 
                       y = 0.95, 
                       orientation="h")
-         )%>%
-
-plotly_build()
-saveRDS(fig, "Figures/cat3_fam_DCD.rds")
-
-d <- readRDS("Figures/cat3_fam_DCD.rds")
-d
+         )
+saveWidget(fig, "Rapport_sectoriel/www/cat3_fam_1.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
@@ -855,13 +802,9 @@ fig<- fig %>%
                      legend= list(x = 0.2, 
                       y = 0.95, 
                       orientation="h")
-         )%>%
-
-plotly_build()
-saveRDS(fig, "Figures/cat3_fam_DDD.rds")
-
-d <- readRDS("Figures/cat3_fam_DDD.rds")
-d
+         )
+saveWidget(fig, "Rapport_sectoriel/www/cat3_fam_2.html", selfcontained = F, libdir = "lib")
+fig
 
 ```
 
