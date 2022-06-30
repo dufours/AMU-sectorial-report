@@ -11,7 +11,7 @@
 
 <meta name="author" content="Simon Dufour" />
 
-<meta name="date" content="2022-06-20" />
+<meta name="date" content="2022-06-29" />
 
 <title>Organisation des jeux de données</title>
 
@@ -1512,7 +1512,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Organisation des jeux de données</h1>
 <h4 class="author">Simon Dufour</h4>
-<h4 class="date">2022-06-20</h4>
+<h4 class="date">2022-06-29</h4>
 
 </div>
 
@@ -1581,7 +1581,7 @@ data5$No.ferme &lt;- factor(data5$No.ferme)</code></pre>
 #CrossTable(data5$No.ferme, data5$Year, prop.t=FALSE, prop.r=FALSE, prop.c=FALSE)</code></pre>
 <p>Il y aurait 16 fermes qui n’étaient plus suivies en 2020: 1, 12, 14,
 15, 21, 23, 24, 28, 31, 32, 48, 57, 69, 73, 83, 102. Nous les
-retitons:</p>
+retirons:</p>
 <pre class="r"><code>Ventes &lt;- subset(data5, (No.ferme!=1 &amp; No.ferme!=12 &amp; No.ferme!=14 &amp; No.ferme!=15 &amp; No.ferme!=21 &amp; No.ferme!=23 &amp; No.ferme!=24 &amp; No.ferme!=28 &amp; No.ferme!=31 &amp; No.ferme!=32 &amp; No.ferme!=48 &amp; No.ferme!=57 &amp; No.ferme!=69 &amp; No.ferme!=73 &amp; No.ferme!=83 &amp; No.ferme!=102))</code></pre>
 <p>Finalement, on peut vérifier le nombre de ligne de vente totales et
 de ventes d’antibiotiques en particulier.</p>
@@ -2039,7 +2039,7 @@ afin d’éviter tout recoupement qui pourrait mener à un bris de
 confidentialité. Puis j’enregistre la table.</p>
 <pre class="r"><code>max.agg.amu2 &lt;- max.agg.amu[ -c(64:72, 109) ]
 
-write.csv(max.agg.amu2,&quot;data/max.csv&quot;, row.names = FALSE)</code></pre>
+write.csv(max.agg.amu2,&quot;Rapport_sectoriel - Appli Shiny/data/max.csv&quot;, row.names = FALSE)</code></pre>
 </div>
 <div id="utilisation-par-ferme-année" class="section level3">
 <h3>Utilisation par ferme-année</h3>
@@ -2376,8 +2376,143 @@ min.agg.amu$TMS_DDD &lt;- min.agg.amu$TMS_DDD/min.agg.amu$denom*100
 
 min.agg.amu2 &lt;- min.agg.amu[ -c(63:71, 108) ]
 
-write.csv(min.agg.amu2,&quot;data/min.csv&quot;, row.names = FALSE)</code></pre>
+write.csv(min.agg.amu2,&quot;Rapport_sectoriel - Appli Shiny/data/min.csv&quot;, row.names = FALSE)</code></pre>
 </div>
+</div>
+<div id="prescriptions-alimentaires" class="section level2">
+<h2>Prescriptions alimentaires</h2>
+<p>Nous devons également importer et manipuler/organiser les données de
+prescriptions qui ont aussi été extraites du logiciel Vet-Expert. Dans
+ce cas, nous n’avons que des données 2019-2020-2021-2022. Nous n’allons
+pas “créer” de fausses-données 2016-2017-2018 pour cette partie du
+prototype, je vais plutôt décaler les données.</p>
+<pre class="r"><code>library(readxl)
+
+PA &lt;- read_xlsx(path=(&quot;data/PRESCRIPTIONS alim.xlsx&quot;), col_names = TRUE)</code></pre>
+<p>Une première étape est de retirer les prescriptions de type
+“annuelle” qui se retrouveront également dans les données de ventes,
+afin de ne conserver que les prescriptions alimentaires.</p>
+<pre class="r"><code>PA2 &lt;- subset(PA, Type==&quot;Aliment&quot;)</code></pre>
+<p>Il y a 180 prescriptions alimentaires dans le chiffrier. Ensuite, on
+pourrait extraire l’année (i.e., 2016, 2017, 2018…) des champs “date de
+début” et date de fin”. Ainsi, toutes les prescriptions qui sont actives
+dans une (ou plusieurs) années seront compilées dans celle(s)-ci.</p>
+<pre class="r"><code>PA2$Year1 &lt;- substr(PA2$`Date de Début`, 1, 4)
+PA2$Year2 &lt;- substr(PA2$`Date de Fin`, 1, 4)</code></pre>
+<p>Nous pouvons maintenant vérifier les types de prescriptions par ferme
+pour une certaine année. Seulement trois “types” de prescriptions ont
+été faites sur 37 fermes seulement: Oxytetracycline, Lasalocide Sodique
+et Monensin.</p>
+<pre class="r"><code>library(data.table)
+library(dplyr)</code></pre>
+<pre><code>## 
+## Attachement du package : &#39;dplyr&#39;</code></pre>
+<pre><code>## Les objets suivants sont masqués depuis &#39;package:data.table&#39;:
+## 
+##     between, first, last</code></pre>
+<pre><code>## Les objets suivants sont masqués depuis &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## Les objets suivants sont masqués depuis &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──</code></pre>
+<pre><code>## ✓ tibble  3.1.6     ✓ purrr   0.3.4
+## ✓ tidyr   1.2.0     ✓ stringr 1.4.0
+## ✓ readr   2.1.2     ✓ forcats 0.5.1</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::between()   masks data.table::between()
+## x dplyr::filter()    masks stats::filter()
+## x dplyr::first()     masks data.table::first()
+## x dplyr::lag()       masks stats::lag()
+## x dplyr::last()      masks data.table::last()
+## x purrr::transpose() masks data.table::transpose()
+## x tibble::view()     masks summarytools::view()</code></pre>
+<pre class="r"><code>PA2$nim &lt;- PA2$`Nim Client`
+PA2$Item &lt;- PA2$`Nom Item`
+
+#Compile users per Item for beginning of year
+data &lt;- dcast(PA2, nim+Year1 ~ Item, value.var=&quot;Item&quot;)</code></pre>
+<pre><code>## Warning in dcast(PA2, nim + Year1 ~ Item, value.var = &quot;Item&quot;): The dcast
+## generic in data.table has been passed a tbl_df and will attempt to redirect
+## to the reshape2::dcast; please note that reshape2 is deprecated, and this
+## redirection is now deprecated as well. Please do this redirection yourself like
+## reshape2::dcast(PA2). In the next version, this warning will become an error.</code></pre>
+<pre><code>## Aggregation function missing: defaulting to length</code></pre>
+<pre class="r"><code>#Rename the Items
+data$Oxytet &lt;- data$`chlorhydrate d&#39;oxytetracycline 1000g/kg/néomycin 325`
+data$Monensin &lt;- data$`monensin sodique 20%`+data$`Prémélange Rumensin Shur-Gain renfermant 2 g de monensin par Kg de Prémélange`+data$Rumensin+data$RUMENSIN+
+  data$`Rumensin (200 g monensin par kg)`+data$`RUMENSIN (200 g/kg sodium momensin)`+data$`Rumensin 20%`+data$`RUMENSIN contenant 200 g/kg`+data$`RUMENSIN PREMIX`+
+  data$`Rumensin Premix 0.2%`+data$`Rumensin renfermant 200g de monensin par Kg de Rumensin`+data$`Sodium de Monensin ou Rumensin`+data$`Sodium De Monensin ou Rumensin`
+data$Lasalocid &lt;- data$Deccox+data$DECCOX+data$`Deccox 6% Prémélange 25 kg`+data$`DECCOX 6% PREMELANGE 25kg`+data$`Decoquinate ou Deccox`+data$`LASALOCIDE SODIQUE`
+data$Year &lt;- data$Year1
+alim1 &lt;-  data[ c(1, 23:26 ) ]
+
+#Compile users per Item for end of year
+data &lt;- dcast(PA2, nim+Year2 ~ Item, value.var=&quot;Item&quot;)</code></pre>
+<pre><code>## Warning in dcast(PA2, nim + Year2 ~ Item, value.var = &quot;Item&quot;): The dcast
+## generic in data.table has been passed a tbl_df and will attempt to redirect
+## to the reshape2::dcast; please note that reshape2 is deprecated, and this
+## redirection is now deprecated as well. Please do this redirection yourself like
+## reshape2::dcast(PA2). In the next version, this warning will become an error.</code></pre>
+<pre><code>## Aggregation function missing: defaulting to length</code></pre>
+<pre class="r"><code>#Rename the Items
+data$Oxytet &lt;- data$`chlorhydrate d&#39;oxytetracycline 1000g/kg/néomycin 325`
+data$Monensin &lt;- data$`monensin sodique 20%`+data$`Prémélange Rumensin Shur-Gain renfermant 2 g de monensin par Kg de Prémélange`+data$Rumensin+data$RUMENSIN+
+  data$`Rumensin (200 g monensin par kg)`+data$`RUMENSIN (200 g/kg sodium momensin)`+data$`Rumensin 20%`+data$`RUMENSIN contenant 200 g/kg`+data$`RUMENSIN PREMIX`+
+  data$`Rumensin Premix 0.2%`+data$`Rumensin renfermant 200g de monensin par Kg de Rumensin`+data$`Sodium de Monensin ou Rumensin`+data$`Sodium De Monensin ou Rumensin`
+data$Lasalocid &lt;- data$Deccox+data$DECCOX+data$`Deccox 6% Prémélange 25 kg`+data$`DECCOX 6% PREMELANGE 25kg`+data$`Decoquinate ou Deccox`+data$`LASALOCIDE SODIQUE`
+data$Year &lt;- data$Year2
+alim2 &lt;-  data[ c(1, 23:26 ) ]
+
+#Join the 2 datasets
+alim &lt;- rbind(alim1, alim2)
+
+#summarize by farm and year
+alim_B &lt;- alim %&gt;%
+  aggregate(cbind(Oxytet, Lasalocid, Monensin) ~ nim+Year, sum)
+
+#Replace 1, 2, 3, 4 by 0 and 1
+alim_B$Oxytet &lt;- ifelse(alim_B$Oxytet&lt;1, 0, 1)
+alim_B$Lasalocid &lt;- ifelse(alim_B$Lasalocid&lt;1, 0, 1)
+alim_B$Monensin &lt;- ifelse(alim_B$Monensin&lt;1, 0, 1)
+
+#summarize by year the number of users
+alim_C &lt;- alim_B %&gt;%
+  aggregate(cbind(Oxytet, Lasalocid, Monensin) ~ Year, sum)
+
+
+alim_C &lt;- alim_C %&gt;% 
+  rename(
+    Oxytétracyclines = Oxytet,
+    `Lasalocide sodique` = Lasalocid,
+    Année = Year
+    )
+
+#Diviser par 84 fermes pour avoir un %
+alim_C$Oxytétracyclines &lt;- round(alim_C$Oxytétracyclines/84*100, digits=1)
+alim_C$`Lasalocide sodique` &lt;- round(alim_C$`Lasalocide sodique`/84*100, digits=1)
+alim_C$Monensin &lt;- round(alim_C$Monensin/84*100, digits=1)
+
+ALIM &lt;- data.frame(t(alim_C)) 
+
+ALIM &lt;- ALIM[-c(1),  ]
+
+ALIM &lt;- ALIM %&gt;% 
+  rename(
+    `2017` = X1,
+    `2018` = X2,
+    `2019` = X3,
+    `2020` = X4
+    )
+
+ALIM</code></pre>
+<pre><code>##                    2017 2018 2019 2020
+## Oxytétracyclines    1.2  1.2  1.2  1.2
+## Lasalocide sodique 16.7 16.7 15.5 13.1
+## Monensin           34.5 39.3 34.5 21.4</code></pre>
+<pre class="r"><code>write.csv(ALIM,&quot;Rapport_sectoriel - Appli Shiny/data/Alim.csv&quot;, row.names = FALSE)</code></pre>
 </div>
 </div>
 

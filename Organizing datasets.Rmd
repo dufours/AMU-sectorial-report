@@ -97,7 +97,7 @@ data5$No.ferme <- factor(data5$No.ferme)
 
 ```
   
-Il y aurait 16 fermes qui n'étaient plus suivies en 2020: 1, 12, 14, 15, 21, 23, 24, 28, 31, 32, 48, 57, 69, 73, 83, 102. Nous les retitons:
+Il y aurait 16 fermes qui n'étaient plus suivies en 2020: 1, 12, 14, 15, 21, 23, 24, 28, 31, 32, 48, 57, 69, 73, 83, 102. Nous les retirons:
 ```{r}
 Ventes <- subset(data5, (No.ferme!=1 & No.ferme!=12 & No.ferme!=14 & No.ferme!=15 & No.ferme!=21 & No.ferme!=23 & No.ferme!=24 & No.ferme!=28 & No.ferme!=31 & No.ferme!=32 & No.ferme!=48 & No.ferme!=57 & No.ferme!=69 & No.ferme!=73 & No.ferme!=83 & No.ferme!=102))
 ```
@@ -528,7 +528,7 @@ Avant de finaliser la table, je vais retirer les nombres d'animaux afin d'évite
 ```{r}
 max.agg.amu2 <- max.agg.amu[ -c(64:72, 109) ]
 
-write.csv(max.agg.amu2,"data/max.csv", row.names = FALSE)
+write.csv(max.agg.amu2,"Rapport_sectoriel - Appli Shiny/data/max.csv", row.names = FALSE)
 ```
 
 
@@ -864,7 +864,126 @@ min.agg.amu$TMS_DDD <- min.agg.amu$TMS_DDD/min.agg.amu$denom*100
 
 min.agg.amu2 <- min.agg.amu[ -c(63:71, 108) ]
 
-write.csv(min.agg.amu2,"data/min.csv", row.names = FALSE)
+write.csv(min.agg.amu2,"Rapport_sectoriel - Appli Shiny/data/min.csv", row.names = FALSE)
+
+```
+
+## Prescriptions alimentaires
+Nous devons également importer et manipuler/organiser les données de prescriptions qui ont aussi été extraites du logiciel Vet-Expert. Dans ce cas, nous n'avons que des données 2019-2020-2021-2022. Nous n'allons pas "créer" de fausses-données 2016-2017-2018 pour cette partie du prototype, je vais plutôt décaler les données.   
+  
+```{r}
+library(readxl)
+
+PA <- read_xlsx(path=("data/PRESCRIPTIONS alim.xlsx"), col_names = TRUE)
 
 ```
   
+Une première étape est de retirer les prescriptions de type "annuelle" qui se retrouveront également dans les données de ventes, afin de ne conserver que les prescriptions alimentaires.  
+  
+```{r}
+PA2 <- subset(PA, Type=="Aliment")
+```
+
+Il y a 180 prescriptions alimentaires dans le chiffrier. Ensuite, on pourrait extraire l'année (i.e., 2016, 2017, 2018...) des champs "date de début" et date de fin". Ainsi, toutes les prescriptions qui sont actives dans une (ou plusieurs) années seront compilées dans celle(s)-ci.  
+  
+```{r}
+PA2$Year1 <- substr(PA2$`Date de Début`, 1, 4)
+PA2$Year2 <- substr(PA2$`Date de Fin`, 1, 4)
+```
+  
+Nous pouvons maintenant vérifier les types de prescriptions par ferme pour une certaine année. Seulement trois "types" de prescriptions ont été faites sur 37 fermes seulement: Oxytetracycline, Lasalocide Sodique et Monensin.   
+  
+```{r}
+library(data.table)
+library(dplyr)
+library(tidyverse)
+
+PA2$nim <- PA2$`Nim Client`
+PA2$Item <- PA2$`Nom Item`
+
+#Compile users per Item for beginning of year
+data <- dcast(PA2, nim+Year1 ~ Item, value.var="Item")
+
+#Rename the Items
+data$Oxytet <- data$`chlorhydrate d'oxytetracycline 1000g/kg/néomycin 325`
+data$Monensin <- data$`monensin sodique 20%`+data$`Prémélange Rumensin Shur-Gain renfermant 2 g de monensin par Kg de Prémélange`+data$Rumensin+data$RUMENSIN+
+  data$`Rumensin (200 g monensin par kg)`+data$`RUMENSIN (200 g/kg sodium momensin)`+data$`Rumensin 20%`+data$`RUMENSIN contenant 200 g/kg`+data$`RUMENSIN PREMIX`+
+  data$`Rumensin Premix 0.2%`+data$`Rumensin renfermant 200g de monensin par Kg de Rumensin`+data$`Sodium de Monensin ou Rumensin`+data$`Sodium De Monensin ou Rumensin`
+data$Lasalocid <- data$Deccox+data$DECCOX+data$`Deccox 6% Prémélange 25 kg`+data$`DECCOX 6% PREMELANGE 25kg`+data$`Decoquinate ou Deccox`+data$`LASALOCIDE SODIQUE`
+data$Year <- data$Year1
+alim1 <-  data[ c(1, 23:26 ) ]
+
+#Compile users per Item for end of year
+data <- dcast(PA2, nim+Year2 ~ Item, value.var="Item")
+
+#Rename the Items
+data$Oxytet <- data$`chlorhydrate d'oxytetracycline 1000g/kg/néomycin 325`
+data$Monensin <- data$`monensin sodique 20%`+data$`Prémélange Rumensin Shur-Gain renfermant 2 g de monensin par Kg de Prémélange`+data$Rumensin+data$RUMENSIN+
+  data$`Rumensin (200 g monensin par kg)`+data$`RUMENSIN (200 g/kg sodium momensin)`+data$`Rumensin 20%`+data$`RUMENSIN contenant 200 g/kg`+data$`RUMENSIN PREMIX`+
+  data$`Rumensin Premix 0.2%`+data$`Rumensin renfermant 200g de monensin par Kg de Rumensin`+data$`Sodium de Monensin ou Rumensin`+data$`Sodium De Monensin ou Rumensin`
+data$Lasalocid <- data$Deccox+data$DECCOX+data$`Deccox 6% Prémélange 25 kg`+data$`DECCOX 6% PREMELANGE 25kg`+data$`Decoquinate ou Deccox`+data$`LASALOCIDE SODIQUE`
+data$Year <- data$Year2
+alim2 <-  data[ c(1, 23:26 ) ]
+
+#Join the 2 datasets
+alim <- rbind(alim1, alim2)
+
+#summarize by farm and year
+alim_B <- alim %>%
+  aggregate(cbind(Oxytet, Lasalocid, Monensin) ~ nim+Year, sum)
+
+#Replace 1, 2, 3, 4 by 0 and 1
+alim_B$Oxytet <- ifelse(alim_B$Oxytet<1, 0, 1)
+alim_B$Lasalocid <- ifelse(alim_B$Lasalocid<1, 0, 1)
+alim_B$Monensin <- ifelse(alim_B$Monensin<1, 0, 1)
+
+#summarize by year the number of users
+alim_C <- alim_B %>%
+  aggregate(cbind(Oxytet, Lasalocid, Monensin) ~ Year, sum)
+
+
+alim_C <- alim_C %>% 
+  rename(
+    Oxytétracyclines = Oxytet,
+    `Lasalocide sodique` = Lasalocid,
+    Année = Year
+    )
+
+#Diviser par 84 fermes pour avoir un %
+alim_C$Oxytétracyclines <- round(alim_C$Oxytétracyclines/84*100, digits=1)
+alim_C$`Lasalocide sodique` <- round(alim_C$`Lasalocide sodique`/84*100, digits=1)
+alim_C$Monensin <- round(alim_C$Monensin/84*100, digits=1)
+
+ALIM <- data.frame(t(alim_C)) 
+
+
+ALIM <- ALIM[-c(1),  ]
+
+names <- c( "Oxytétracyclines", "Lasalocide sodique", "Monensin")
+
+ALIM <- cbind(names, ALIM)
+
+
+
+ALIM <- ALIM %>% 
+  rename(
+    Antibiotique = names,
+    "Année 2017" = X1,
+    "Année 2018" = X2,
+    "Année 2019" = X3,
+    "Année 2020" = X4
+    )
+#Add names as part of the table
+
+
+
+ALIM
+
+write.csv(ALIM,"Rapport_sectoriel - Appli Shiny/data/Alim.csv", row.names = FALSE)
+
+```
+
+
+
+
+

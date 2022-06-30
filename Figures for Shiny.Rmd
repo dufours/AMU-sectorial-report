@@ -492,7 +492,7 @@ fig <- plot_ly(min,
                x = ~Année,
                y = ~TGCeph_DCD, 
                type = 'box', 
-               name="Céphalosporines de 3e génération",
+               name="Céphalosporines de 3ème gén.",
                marker=list(color="white")
                )
 fig <- fig %>% add_trace(min,
@@ -534,7 +534,7 @@ fig <- plot_ly(min,
                x = ~Année,
                y = ~TGCeph_DDD, 
                type = 'box', 
-               name="Céphalosporines de 3e génération",
+               name="Céphalosporines de 3ème gén.",
                marker=list(color="white")
                )
 fig <- fig %>% add_trace(min,
@@ -594,7 +594,7 @@ fig <- fig %>% add_trace(min,
                          x = ~Année,
                          y = ~FGCeph_DCD,
                          type = 'box', 
-                         name="1ère gén. céphapirines",
+                         name="Céphalosporines de 1ère gén.",
                          marker=list(color="white")
                          )
 fig <- fig %>% add_trace(min,
@@ -670,7 +670,7 @@ fig <- fig %>% add_trace(min,
                          x = ~Année,
                          y = ~FGCeph_DDD,
                          type = 'box', 
-                         name="1ère gén. céphapirines",
+                         name="Céphalosporines de 1ère gén.",
                          marker=list(color="white")
                          )
 fig <- fig %>% add_trace(min,
