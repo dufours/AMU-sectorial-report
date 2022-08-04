@@ -215,7 +215,7 @@ shinyUI(fluidPage(# Application title
           ),
           
           column(width = 6,
-                 h2(tags$b("Antibiotiques courants")),
+                 h2(tags$b("Antibiotiques administrés par voies intra-mammaire, injectable, intra-utérine, orale ou topique")),
                  br(),
                  plotlyOutput("RoutePlot"),
                  br(),

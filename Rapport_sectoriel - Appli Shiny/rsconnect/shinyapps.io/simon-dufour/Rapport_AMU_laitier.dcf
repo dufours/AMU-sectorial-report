@@ -1,0 +1,13 @@
+name: Rapport_AMU_laitier
+title: Rapport_AMU_laitier
+username:
+account: simon-dufour
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6571863
+bundleId: 6056192
+url: https://simon-dufour.shinyapps.io/Rapport_AMU_laitier/
+when: 1656548378.06777
+lastSyncTime: 1656548378.06779
+asMultiple: FALSE
+asStatic: FALSE
