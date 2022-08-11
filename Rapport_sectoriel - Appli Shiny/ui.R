@@ -8,7 +8,13 @@ library(plotly)
 
 # Define UI for application that draws the AMU report
 shinyUI(fluidPage(# Application title
-  titlePanel(h2(tags$b("Prototype de rapport sectoriel bovin laitier sur l'utilisation des antimicrobiens"))),
+  titlePanel(h2(tags$b("Prototype de rapport sectoriel bovin laitier sur l'utilisation des antimicrobiens"),
+                br(),
+                br(),
+                a(href = "https://simon-dufour.shinyapps.io/Rapport_AMU_laitier_EN/", "English"),
+                br(),
+                br()
+                )),
   
   # Organize main panel in multiple tabsetpanels
   mainPanel(width = 12, tabsetPanel(type = "tabs",tabPanel(
@@ -68,12 +74,18 @@ shinyUI(fluidPage(# Application title
         ),
         
         fluidRow(
+          column(width = 2),
+          column(width = 4, tags$img(src = "UdeM_monde.png", width = "600")),
           column(width = 1),
-          column(width = 3, tags$img(src = "UdeM_monde.png", width = "600")),
-          column(width = 2, tags$img(src = "cercl.png", height = "250")),
-          column(width = 3, tags$img(src = "vetexpert.png", width = "400")),
-          column(width = 2, tags$img(src = "quebec.jpg", width = "400")),
+          column(width = 4, tags$img(src = "cercl.png", height = "250")),
           column(width = 1)
+        ),
+        fluidRow(
+          column(width = 2),
+          column(width = 4, tags$img(src = "vetexpert.png", width = "400")),
+          column(width = 1),
+          column(width = 4, tags$img(src = "quebec.jpg", width = "400")),
+          column(width = 2)
         )
       ),
       
@@ -179,16 +191,22 @@ shinyUI(fluidPage(# Application title
                  column(
                    br(),
                    br(),
-                   p(
-                     "ICI ONT POURRAIT AJOUTER UN COURS TEXTE EXPLIQUANT LES GRANDES LIGNES DE LA FIGURE EN DCD ET DE CELLE EN DDD. LE TEXTE POURRAIT ÊTRE RÉACTIF
-                          ET S'AJUSTER À L'UNITÉ DE MESURE CHOISIE.
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi.",
+                   p("On note une certaine réduction de même qu'une homogénisation des taux d'utilisation 
+                     des antibiotiques pour les années 2019 et 2020. En effet, en 2016, 2017 et 2018, 
+                     les taux d'utilisation des antibiotiques semblaient légèrement plus élevés (médiane variant de 222 
+                     à 280 pour 2016 à 2018 vs. 206 à 199 traitements complets/100 animaux-année pour 2019 et 2020). 
+                     L'étendue interquartile en 2016, 2017 et 2018 était de 250, 272 et 265 traitements complets/
+                     100 animaux-année, respectivement. En comparaison, l'étendue interquartile était de 107 et 120 
+                     traitements complets/100 animaux-année pour les années 2019 et 2020, respectivement. Les taux
+                     d'utilisation des antibiotiques semblaient donc beaucoup plus variables, d'un troupeau à 
+                     l'autre en 2016, 2017 et 2020 et ces taux d'utilisation seraient ensuite devenus plus 
+                     homogènes en 2019 et 2020.",
+                     style = "font-size:20px"
+                   ),
+                   p("Ces changements dans les taux d'utilisation des antibiotiques semblent moins apparents lorsque 
+                     les taux sont raportés en dose-jour/100 animaux-année. Cependant, il s'agit principalement 
+                     d'un artefact causé par l'échelle de la figure. En inspectant les médianes et en réduisant
+                      l'axe des Y de la figure, on note les mêmes tendances.",
                      style = "font-size:20px"
                    ),
                    width = 9
@@ -214,26 +232,46 @@ shinyUI(fluidPage(# Application title
                  ),style = "font-size:20px"
           ),
           
-          column(width = 6,
+          column(width = 9,
                  h2(tags$b("Antibiotiques administrés par voies intra-mammaire, injectable, intra-utérine, orale ou topique")),
                  br(),
                  plotlyOutput("RoutePlot"),
                  br(),
                  p(
-                   "ICI ONT POURRAIT AJOUTER UN COURS TEXTE EXPLIQUANT LES GRANDES LIGNES DE LA FIGURE EN DCD ET DE CELLE EN DDD. LE TEXTE POURRAIT ÊTRE RÉACTIF
-                          ET S'AJUSTER À L'UNITÉ DE MESURE CHOISIE.
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi.",
+                   "La voie d'administration la plus utilisée étaient la voie intra-mammaire.
+                   Lorsque mesuré en traitements complets, les traitements intra-mammaires durant 
+                   la lactation (traitements pour la mammite clinique) étaient les plus fréquents. 
+                   Cependant, étant donné leur plus longue durée d'action, les traitements 
+                   intra-mammaires au tarissement représentaient la part la plus grande des traitements
+                   antibiotiques lorsque ceux-ci étaient rapportés en doses journalières.",
+                   style = "font-size:20px"
+                 ),
+                 p(
+                   "On note une réduction importante des taux d'utilisation des antibiotiques
+                   intra-mammaires durant la lactation en 2019 et 2020, comparativement aux 
+                   années 2016 à 2018. En effet, les taux d'utilisation médians de ces antibiotiques 
+                   variaient de 72 à 115 traitements complets/100 animaux-année entre 2016 et 2018, 
+                   alors que ces taux médians étaient de 65, puis 45 traitements complets/100 animaux-année
+                   en 2019 et 2020, respectivement. On note également que les taux d'utilisation 
+                   de ces antibiotiques étaient plus homogènes d'un troupeau à l'autre pour les 
+                   années 2019 et 2020. En effet, des étendues interquartiles supérieures à 
+                   200 traitements complets/100 animaux-année étaient observées pour les années 2016 à 
+                   2018, alors que celles-ci étaient de 85 et 52 traitements complets/100 animaux-année
+                   pour les années 2019 et 2020, respectivement. ",
+                   style = "font-size:20px"
+                   ),
+                 p(
+                   "On observe peu de variation d'une année à l'autre dans les taux d'utilisation
+                   des antibiotiques administrés par voie intra-mammaire au tarissement, ou par voies
+                   injectable, intra-utérine, orale ou topique",
                    style = "font-size:20px"
                  )
                  ),
-          column(width=1),
-          column(width=3,
+          column=(width=1)
+           ),
+        fluidRow(
+          column(width=2),
+          column(width=9,
                  h2(tags$b("Antibiotiques dans l'alimentation")),
                  p("L'ajout d'antibiotiques d'importance pour la santé humaine dans les aliments des bovins laitiers est une pratique très marginale au Québec",
                    a(href = "https://www.mdpi.com/2076-2607/9/9/1834/htm", "(Lardé et al., 2021b)."),
@@ -242,19 +280,21 @@ shinyUI(fluidPage(# Application title
                    malheureusement pas disponibles.", style = "font-size:20px"),
                  h3(tags$b("Tableau 1."), "Proportion (%) des élevages avec une prescription active."),
                  tableOutput('table_alim'),
-                 p("On note que seul 3 antibiotiques étaient parfois utilisés dans l'alimentation des bovins laitiers. Il s'agissait du monensin, qui était administré dans 21 à 
+                 p("On note que seuls 3 antibiotiques étaient parfois utilisés dans l'alimentation des bovins laitiers. Il s'agissait du monensin, qui était administré dans 21 à 
                  39% des troupeaux. Le lasalocide sodique était également utilisé, mais dans 13 à 17% des troupeaux seulement. Le monensin et le lasalocide sodique sont considérés 
                    par Santé Canada comme étant des antibiotiques de faible importance (catégorie IV) pour la santé humaine ",
                    a(href = "https://www.canada.ca/fr/sante-canada/services/medicaments-produits-sante/medicaments-veterinaires/resistance-antimicrobiens/categorisation-medicaments-antimicrobiens-basee-leur-importance-medecine-humaine.html", "(Santé Canada)."),
                    "Finalement, 1% des troupeaux utilisaient l'oxytétracycline dans l'alimentation de certains groupes d'animaux. 
                    L'oxytétracycline est considérée par Santé Canada comme étant un antibiotique de moyenne importance (catégorie III) pour la santé humaine ",
                    a(href = "https://www.canada.ca/fr/sante-canada/services/medicaments-produits-sante/medicaments-veterinaires/resistance-antimicrobiens/categorisation-medicaments-antimicrobiens-basee-leur-importance-medecine-humaine.html", "(Santé Canada)."),
-                   "Ces différentes utilisations variaient peu entre 2017 et 2020."
-                    ),
+                   "Ces différentes utilisations variaient peu entre 2017 et 2020.", tags$b("Notez que les données pour l'année 2020 étaient incomplètes. La réduction observée en 2020 est donc possiblement causée par cet artefact.")
+                 ),
                  
                  style = "font-size:20px" 
-                 )
-          )
+          ),
+          column(width=1)
+          
+        )
       ),
         
       ###########
@@ -288,28 +328,36 @@ shinyUI(fluidPage(# Application title
         fluidRow(column(
                    br(),
                    br(),
+                   p("Les antibiotiques les plus utlisés étaient ceux de catégorie II-Haute importance. 
+                     La majorité des produits vétérinaires antibiotiques homologués pour les bovins font 
+                     partie de cette catégorie. En général, on observe peu de variation d'une année à l'autre 
+                     dans les taux d'utilisation des antibiotiques de catégorie II-Haute importance et de 
+                     catégorie III-Importance moyenne. On note, cependant, des changements importants dans les taux d'utilisation 
+                     des antibiotiques de catégorie I-Très haute importance."
+                   ),
+                   h3(tags$b("Antibiotiques de catégorie I-Très haute importance")),
                    p(
-                     "ICI ONT POURRAIT AJOUTER UN COURS TEXTE EXPLIQUANT LES GRANDES LIGNES DE LA FIGURE EN DCD ET DE CELLE EN DDD. LE TEXTE POURRAIT ÊTRE RÉACTIF
-                          ET S'AJUSTER À L'UNITÉ DE MESURE CHOISIE.
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi.",
-                     br(),
-                     br(),
+                     "On note une réduction très importante ainsi qu'une homogénisation 
+                     des taux d'utilisation des antibiotiques de catégorie I-Très haute importance 
+                     en 2019 et 2020, comparativement à la période 2016 à 2018. En effet, les taux médians 
+                     d'utilisation de ces antibiotiques étaient de 39, 34 et 47 traitements complets/100 
+                     animaux-année en 2016, 2017 et 2018, respectivement, vs. 11 puis 3 traitements 
+                     complets/100 animaux-année en 2019 et 2020, respectivement. Cette réduction des 
+                     taux d'utilisation a d'ailleurs été étudiée sur un échantillon plus important de troupeaux 
+                     laitiers québécois (n=3569) par ",
+                     a(href = "https://onlinelibrary.wiley.com/doi/10.1111/zph.12929", "Millar et al. (2022)."),
+                   ),
+                     
+                     
                      h3(tags$b("*Catégorisation des médicaments antimicrobiens basée sur leur importance en médecine humaine" )),
                      p("Les antibiotiques sont catégorisés en 4 catégories (I–Très haute importance, II–Haute importance, III–Importance moyenne et IV–Faible importance) 
                    par Santé Canada en fonction de leur importance pour la santé humaine",
                        a(href = "https://www.canada.ca/fr/sante-canada/services/medicaments-produits-sante/medicaments-veterinaires/resistance-antimicrobiens/categorisation-medicaments-antimicrobiens-basee-leur-importance-medecine-humaine.html", "(Santé Canada)"),
                        ". Les principaux critères de la catégorisation sont l'indication (i.e., la maladie ciblée) et la disponibilité des médicaments antimicrobiens 
                    de remplacement pour le traitement d'infections chez les humains. L'utilisation des antimicrobiens en médecine vétérinaire 
-                   n'est pas prise en considération dans cette catégorisation."),
-                     br()
-                   ),
-                   style = "font-size:20px",
+                   n'est pas prise en considération dans cette catégorisation."
+                       ),
+                    style = "font-size:20px",
                    width = 12
                  ))
       ),
@@ -331,35 +379,84 @@ shinyUI(fluidPage(# Application title
                    ),
                    selected = 1
                  ),style = "font-size:20px"
-          )
-          
-        ),
-        fluidRow(h2(tags$b("Utilisation par famille d'antibiotique")),
-                 br(),
-          column(width = 4,
-                 plotlyOutput("Fam1Plot")),
-          column(width = 4,
-                 plotlyOutput("Fam2Plot")),
-          column(width = 4,
-                 plotlyOutput("Fam3Plot"))
-        ),
-        fluidRow(column(
-          br(),
-          br(),
-          p(
-            "ICI ONT POURRAIT AJOUTER UN COURS TEXTE EXPLIQUANT LES GRANDES LIGNES DE LA FIGURE EN DCD ET DE CELLE EN DDD. LE TEXTE POURRAIT ÊTRE RÉACTIF
-                          ET S'AJUSTER À L'UNITÉ DE MESURE CHOISIE.
-                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum ullam,
-                            ratione modi. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ipsam, quidem, optio? Dolore quia velit totam dolorum
-                            ullam, ratione modi.",
-            style = "font-size:20px"
           ),
-          width = 12
-        ))
+          column(width=8, 
+                 h2(tags$b("Utilisation par famille d'antibiotique")),
+                 br(),
+                 h3(tags$b("Antibiotiques de catégorie I-Très haute importance")),
+                br(),
+                br(),
+                plotlyOutput("Fam1Plot"),
+                br(),
+                p(
+            "Les principales familles d'antibiotiques de catégorie I-Très haute importance
+            utilisées étaient les Céphalosporines de 3e génération et les Polymixines. L'utilisation 
+            de cette dernière famille d'antibiotiques à cessée en 2019, suite au retrait, par le manufacturier, du seul 
+            produit vétérinaire contenant cette famille d'antibiotique. Dans l'échantillon de troupeaux utilisé pour ce rapport, 
+            les fluoroquinolones n'ont pas été utilisées durant la période d'observation. En 2020, ",
+            
+            a(href = "https://pubmed.ncbi.nlm.nih.gov/33272584/", "Lardé et al. "),
+            "rapportaient, dans un échantillon de 101 troupeau laitiers québécois suivis 
+            en 2017 et 2018, une utilisation très marginale (<1% d'utilisateurs) de cette famille 
+            d'antibiotiques.",
+            style = "font-size:20px"
+          )
+        )
+        ),
+        
+        fluidRow(
+          column(width=2),
+          column(width=8,
+          h3(tags$b("Antibiotiques de catégorie II-Haute importance")),
+          br(),
+          br(),
+          plotlyOutput("Fam2Plot"),
+          br(),
+          
+          p("Comme mentionné précédemment, c'est dans cette catégorie d'antibiotiques 
+            que nous retrouvons le plus de produits vétérinaires homologués pour les bovins 
+            au Canada. Les familles d'antibiotiques les plus utilisées étaient les 
+            Penicillines sensibles aux beta-lactames (Benzathine benzylpenicilline, Benzylpenicilline et Procaine benzylpenicilline), 
+            les Céphalosporine de 1e génération (Céfapirine), 
+            les Penicillines résistantes aux beta-lactames (Ampicilline), 
+            ainsi que les Aminoglycosides (Dihydrostreptomycine, Gentamicine, Neomycine et Streptomycine).
+             On note une réduction importante des taux d'utilisation de cette dernière famille 
+            d'antibiotique en 2019 et 2020. Celle-ci est possiblement expliquée par 
+            le retrait, par le manufacturier, d'un produit vétérinaire contenant une 
+            Dihydrostreptomycine. On note également, pour plusieurs familles d'antibiotiques,
+            des variations temporelles des taux d'utilisation.",
+            style = "font-size:20px")
+        )
+        ),
+        
+        fluidRow(
+          column(width=2),
+          column(width=8,
+          h3(tags$b("Antibiotiques de catégorie III-Importance moyenne")),
+          br(),
+          br(),
+          plotlyOutput("Fam3Plot"),
+          br(),
+          
+          p("Relativement peu d'antibiotiques de catégorie III-Importance moyenne étaient utilisés. 
+            La principale famille d'antibiotique utilisées dans cette catégorie sont 
+            les Tétracyclines. On note un réduction de leur utilisation en 2019 et 2020. 
+            Cette diminution est possiblement due aux nombreuses ruptures de stock pour ces 
+            produits, durant cette période.",
+            style = "font-size:20px")
+        )
+        ),
+        
+        fluidRow(
+          column(width=1),
+          column(width=10,
+          h3(tags$b("Tableau 2."), "Classification des agents antimicrobiens utilisés dans les produits à usage vétérinaire au Canada chez les bovins et en fonction de leur importance pour la santé humaine ",
+             a(href = "https://www.canada.ca/fr/sante-canada/services/medicaments-produits-sante/medicaments-veterinaires/resistance-antimicrobiens/categorisation-medicaments-antimicrobiens-basee-leur-importance-medecine-humaine.html", "(Santé Canada).")
+          ),
+          tableOutput('table_famille'),
+          style = "font-size:20px"))
+        
+        
       )
     )
     

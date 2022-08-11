@@ -14,7 +14,7 @@ library(plotly)
 max <- read.csv("data/max.csv")
 min <- read.csv("data/min.csv")
 alim <-read.csv("data/Alim.csv")
-
+famille <-read.csv("data/Famille.csv")
 
 min$Year <- factor(min$Year)
 min$Année <- factor(min$Year)
@@ -38,7 +38,13 @@ shinyServer(function(input, output) {
   output$table_alim <- renderTable(alim, 
                                    digits=1
                                    )
-  
+  #Create a Table (as a dataframe) to present famillies of antimicrobials
+  colnames(famille)= c("Classe d'antibiotique",
+                       "Famille d'antibiotique",
+                       "Catégorie d'importance")
+  output$table_famille <- renderTable(famille,
+                                      hover = TRUE,
+                                      align='c')
   
   ###########
   # PANEL 3 #
@@ -117,7 +123,6 @@ shinyServer(function(input, output) {
                           orientation="h"))
     
   })
-  
   
   
   ###################
@@ -444,5 +449,6 @@ shinyServer(function(input, output) {
                             orientation="h")
         )
     })
- 
+
+    
 })
