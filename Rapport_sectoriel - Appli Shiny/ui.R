@@ -199,7 +199,7 @@ shinyUI(fluidPage(# Application title
                      100 animaux-année, respectivement. En comparaison, l'étendue interquartile était de 107 et 120 
                      traitements complets/100 animaux-année pour les années 2019 et 2020, respectivement. Les taux
                      d'utilisation des antibiotiques semblaient donc beaucoup plus variables, d'un troupeau à 
-                     l'autre en 2016, 2017 et 2020 et ces taux d'utilisation seraient ensuite devenus plus 
+                     l'autre en 2016, 2017 et 2018 et ces taux d'utilisation seraient ensuite devenus plus 
                      homogènes en 2019 et 2020.",
                      style = "font-size:20px"
                    ),
@@ -263,7 +263,7 @@ shinyUI(fluidPage(# Application title
                  p(
                    "On observe peu de variation d'une année à l'autre dans les taux d'utilisation
                    des antibiotiques administrés par voie intra-mammaire au tarissement, ou par voies
-                   injectable, intra-utérine, orale ou topique",
+                   injectable, intra-utérine, orale ou topique.",
                    style = "font-size:20px"
                  )
                  ),
@@ -287,7 +287,7 @@ shinyUI(fluidPage(# Application title
                    "Finalement, 1% des troupeaux utilisaient l'oxytétracycline dans l'alimentation de certains groupes d'animaux. 
                    L'oxytétracycline est considérée par Santé Canada comme étant un antibiotique de moyenne importance (catégorie III) pour la santé humaine ",
                    a(href = "https://www.canada.ca/fr/sante-canada/services/medicaments-produits-sante/medicaments-veterinaires/resistance-antimicrobiens/categorisation-medicaments-antimicrobiens-basee-leur-importance-medecine-humaine.html", "(Santé Canada)."),
-                   "Ces différentes utilisations variaient peu entre 2017 et 2020.", tags$b("Notez que les données pour l'année 2020 étaient incomplètes. La réduction observée en 2020 est donc possiblement causée par cet artefact.")
+                   "Ces différentes utilisations variaient peu entre 2016 et 2020.", tags$b("Notez que les données pour l'année 2020 étaient incomplètes. La réduction observée en 2020 est donc possiblement causée par cet artefact.")
                  ),
                  
                  style = "font-size:20px" 
