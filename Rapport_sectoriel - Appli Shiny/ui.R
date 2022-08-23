@@ -41,7 +41,13 @@ shinyUI(fluidPage(# Application title
               " afin d'estimer l'utilisation des antimicrobiens. ",
               tags$b("Notez que les données disponibles ne couvraient pas complètement la période visée (2016 à 2020) pour ce prototype de rapport et une petite partie
                 de ces données ont donc dûes été extrapolées. Il ne s'agit donc pas d'un rapport réel sur l'utilisation des antimicrobiens, mais plutôt d'un exemple de 
-                rapport tel qu'il pourrait être produit à l'aide de ce genre de données."),
+                rapport tel qu'il pourrait être produit à l'aide de ce genre de données.", style= "color:red"),
+              
+              "Pour des enquêtes utilisant des données réelles, les lecteurs sont plutôt invités à consulter les articles de " ,
+              a(href = "https://www.sciencedirect.com/science/article/pii/S0022030220309930?via%3Dihub", "(Lardé et al., 2021c)"),
+              "et de ",
+              a(href = "https://onlinelibrary.wiley.com/doi/10.1111/zph.12929", "(Millar et al., 2022)."),
+              
               style = "font-size:20px"),
             p("Dans le futur, ce prototype de rapport pourrait être appliqué à un plus grand nombre, voir même l'ensemble des troupeaux laitiers du Québec, ou à d'autres types de productions 
               animales et pourrait être mis à jour annuellement.",
@@ -67,7 +73,8 @@ shinyUI(fluidPage(# Application title
                 tags$li("Maud de Lagarde", style = "font-size:20px"),
                 tags$li("Nikky Millar", style = "font-size:20px"),
                 tags$li("Sébastien Buczinski", style = "font-size:20px"),
-                tags$li("Ahmad Albaaj", style = "font-size:20px")
+                tags$li("Ahmad Albaaj", style = "font-size:20px"),
+                tags$li("Miguel Sautié Castellanos", style = "font-size:20px")
               )
             )
           )
@@ -247,7 +254,7 @@ shinyUI(fluidPage(# Application title
                    style = "font-size:20px"
                  ),
                  p(
-                   "On note une réduction importante des taux d'utilisation des antibiotiques
+                   "On note une réduction importante du nombre de traitements complets des antibiotiques
                    intra-mammaires durant la lactation en 2019 et 2020, comparativement aux 
                    années 2016 à 2018. En effet, les taux d'utilisation médians de ces antibiotiques 
                    variaient de 72 à 115 traitements complets/100 animaux-année entre 2016 et 2018, 
@@ -342,7 +349,8 @@ shinyUI(fluidPage(# Application title
                      en 2019 et 2020, comparativement à la période 2016 à 2018. En effet, les taux médians 
                      d'utilisation de ces antibiotiques étaient de 39, 34 et 47 traitements complets/100 
                      animaux-année en 2016, 2017 et 2018, respectivement, vs. 11 puis 3 traitements 
-                     complets/100 animaux-année en 2019 et 2020, respectivement. Cette réduction des 
+                     complets/100 animaux-année en 2019 et 2020, respectivement. Cette réduction semble faire suite à la nouvelle réglementation québécoise sur l'utilisation des 
+                     antibiotiques de catégorie I-Très haute importance. Cette réduction des 
                      taux d'utilisation a d'ailleurs été étudiée sur un échantillon plus important de troupeaux 
                      laitiers québécois (n=3569) par ",
                      a(href = "https://onlinelibrary.wiley.com/doi/10.1111/zph.12929", "Millar et al. (2022)."),
@@ -390,7 +398,7 @@ shinyUI(fluidPage(# Application title
                 br(),
                 p(
             "Les principales familles d'antibiotiques de catégorie I-Très haute importance
-            utilisées étaient les Céphalosporines de 3e génération et les Polymixines. L'utilisation 
+            utilisées étaient les Céphalosporines de 3e génération et les Polymyxines. L'utilisation 
             de cette dernière famille d'antibiotiques à cessée en 2019, suite au retrait, par le manufacturier, du seul 
             produit vétérinaire contenant cette famille d'antibiotique. Dans l'échantillon de troupeaux utilisé pour ce rapport, 
             les fluoroquinolones n'ont pas été utilisées durant la période d'observation. En 2020, ",
@@ -417,7 +425,7 @@ shinyUI(fluidPage(# Application title
             que nous retrouvons le plus de produits vétérinaires homologués pour les bovins 
             au Canada. Les familles d'antibiotiques les plus utilisées étaient les 
             Penicillines sensibles aux beta-lactames (Benzathine benzylpenicilline, Benzylpenicilline et Procaine benzylpenicilline), 
-            les Céphalosporine de 1e génération (Céfapirine), 
+            les Céphalosporines de 1e génération (Céfapirine), 
             les Penicillines résistantes aux beta-lactames (Ampicilline), 
             ainsi que les Aminoglycosides (Dihydrostreptomycine, Gentamicine, Neomycine et Streptomycine).
              On note une réduction importante des taux d'utilisation de cette dernière famille 
@@ -441,15 +449,14 @@ shinyUI(fluidPage(# Application title
           p("Relativement peu d'antibiotiques de catégorie III-Importance moyenne étaient utilisés. 
             La principale famille d'antibiotique utilisées dans cette catégorie sont 
             les Tétracyclines. On note un réduction de leur utilisation en 2019 et 2020. 
-            Cette diminution est possiblement due aux nombreuses ruptures de stock pour ces 
-            produits, durant cette période.",
+            Cette diminution est probablement due à la discontinuation des produits injectables contenant cet agent antimicrobien durant cette période.",
             style = "font-size:20px")
         )
         ),
         
         fluidRow(
-          column(width=1),
-          column(width=10,
+          column(width=2),
+          column(width=8,
           h3(tags$b("Tableau 2."), "Classification des agents antimicrobiens utilisés dans les produits à usage vétérinaire au Canada chez les bovins et en fonction de leur importance pour la santé humaine ",
              a(href = "https://www.canada.ca/fr/sante-canada/services/medicaments-produits-sante/medicaments-veterinaires/resistance-antimicrobiens/categorisation-medicaments-antimicrobiens-basee-leur-importance-medecine-humaine.html", "(Santé Canada).")
           ),

@@ -39,8 +39,8 @@ shinyServer(function(input, output) {
                                    digits=1
                                    )
   #Create a Table (as a dataframe) to present famillies of antimicrobials
-  colnames(famille)= c("Classe d'antibiotique",
-                       "Famille d'antibiotique",
+  colnames(famille)= c("Famille d'antibiotique",
+                       "Ingrédients actifs",
                        "Catégorie d'importance")
   output$table_famille <- renderTable(famille,
                                       hover = TRUE,
